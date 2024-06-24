@@ -31,15 +31,15 @@ def lambda_handler(event, context):
 
     bedrock_runtime = boto3.client(
         service_name="bedrock-runtime",
-        region_name="us-east-1",
+        region_name="us-west-2",
     )
 
     embeddings, llm = BedrockEmbeddings(
         model_id="amazon.titan-embed-text-v1",
         client=bedrock_runtime,
-        region_name="us-east-1",
+        region_name="us-west-2",
     ), Bedrock(
-        model_id="anthropic.claude-v2", client=bedrock_runtime, region_name="us-east-1"
+        model_id="anthropic.claude-v2", client=bedrock_runtime, region_name="us-west-2"
     )
     faiss_index = FAISS.load_local("/tmp", embeddings)
 
