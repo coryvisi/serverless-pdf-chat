@@ -1,5 +1,3 @@
-# InsuranceLake Cleanse-to-Consume SQL Usage Documentation
-
 The InsuranceLake ETL uses SQL to define the views of data created in the Cleanse-to-Consume Glue Job that are stored in the Consume S3 bucket and database with the suffix `_consume`. There are two kinds of SQL files supported:
 
 * **Spark SQL**: Executed by the Spark session within AWS Glue and used to create a partitioned copy of the data in the Consume S3 bucket and Glue Catalog database
@@ -16,14 +14,17 @@ Both SQL files are **optional** in a data pipeline. A pipeline can succeed with 
 * [Athena SQL](#athena-sql)
 * [Variable Substitution](#variable-substitution)
 * [Pattern Library](#pattern-library)
-    * [Simple SQL Example](#simple-sql-example)
+    * [Simplest Method to Populate Consume](#simplest-method-to-populate-consume)
     * [Join Example](#join-example)
-    * [Partition Snapshot](#partition-snapshot)
-    * [Cast Statement Examples](#case-statement-examples)
+    * [Override Table Name Example](#override-table-name-example)
+    * [Override Partition Fields in Consume](#override-partition-fields-in-consume)
+    * [Partition Snapshot View](#partition-snapshot-view)
+    * [Union Example with Literals as Placeholders](#union-example-with-literals-as-placeholders)
+    * [Case Statement Examples](#case-statement-examples)
     * [Unpivot / Stack](#unpivot--stack)
     * [Key Value Pivot](#key-value-pivot)
     * [Athena Fixed Width View](#athena-fixed-width-view)
-* [FAQ](#frequentyly-asked-questions)
+* [FAQ](#frequently-asked-questions)
 
 
 ## Spark SQL
@@ -32,7 +33,7 @@ Spark SQL is defined in a file following the naming convention of `spark-<databa
 
 A full reference for all the syntax and commands available in Spark SQL can be found in the [Apache Spark SQL Reference documentation](https://spark.apache.org/docs/latest/sql-ref.html).
 
-Spark SQL is used to query the available Hive catalog (in Glue, this is the Glue Catalog) and load data from data lake sources (typically in the Cleanse bucket) into a Spark DataFrame. The DataFrame is subsequently written to the Consume bucket and the Glue Catalog using a database name with an appended `_consume` suffix.
+The AWS Glue Data Catalog is an Apache Hive metastore-compatible catalog ([Reference](https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-data-catalog-hive.html)). InsuranceLake ETL AWS Glue jobs are configured to use the Data Catalog as an external Apache Hive metastore. Spark SQL is used to query the Glue Catalog and load data from data lake sources (typically in the Cleanse bucket) into a Spark DataFrame. The DataFrame is subsequently written to the Consume bucket and the Glue Catalog using a database name with an appended `_consume` suffix.
 
 Considerations and requirements for InsuranceLake's integration of Spark SQL:
 
@@ -90,6 +91,8 @@ Considerations and requirements for InsuranceLake's integration with Athena SQL:
 * The ETL supports multiple Athena SQL queries in the same file, each separated by a semicolon (`;`). This allows you to update multiple views of your data from a single data workflow (1-to-many).
 
     * **Note:** The multi-query implementation relies on the Python `split` function and may not support all variations of query syntax.
+
+* Athena SQL supports [dot notation](https://docs.aws.amazon.com/athena/latest/ug/rows-and-structs.html) for working with arrays, maps, and structured data types for nested data.
 
 * The ETL will ignore any returned data from the Athena SQL query. Only success or failure of the query will impact the workflow. You should design your Athena queries to be self-contained operations, such as creating a view or table.
 

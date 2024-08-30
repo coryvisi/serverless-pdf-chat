@@ -1,5 +1,3 @@
-# InsuranceLake Schema Mapping Documentation
-
 Schema mapping in InsuranceLake is configured by using a comma-delimited text file to describe the source and destination field names.
 
 The filename of the schema mapping configuration file follows the convention of `<database name>-<table name>.csv` and is stored in the `/etl/transformation-spec` folder in the `etl-scripts` bucket. When using CDK for deployment, the contents of the `/lib/glue_scripts/lib/transformation-spec` directory will be automatically deployed to this location.
@@ -9,6 +7,8 @@ Your schema mapping file should map field names to Parquet and Athena-friendly n
 Field names in the schema mapping file are automatically escaped in Spark using surrounding backtick characters `` ` `` so that all field name characters are considered part of the name. See [Mapping Nested Data](#mapping-nested-data) for cases when you want to override the escape characters with your own escaping.
 
 The schema mapping operation is accomplishing using [Spark DataFrame's alias operation](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.Column.alias.html).
+
+When making schema mapping changes to an existing data table, ensure that you understand the ETL's [schema evolution capabilities](./schema_evolution.md).
 
 ## Contents
 
@@ -27,7 +27,7 @@ The schema mapping operation is accomplishing using [Spark DataFrame's alias ope
 
 ## Behavior When There is No Schema Mapping
 
-When there is no schema mapping file or an empty schema mapping file in the etl-scripts bucket for the workflow, the ETL will clean all column names so that they can be saved successfully in Parquet format. The ETL will also save a *recommended* mapping file to the Glue Temp bucket,  `<environment>-insurancelake-<account>-<region>-glue-temp` bucket, in the folder `/etl/collect_to_cleanse` following the naming convention `<database>-<table>.csv`.
+When there is no schema mapping file or an empty schema mapping file in the etl-scripts bucket for the workflow, **the ETL will clean all column names so that they can be saved successfully in Parquet format**. The ETL will also save a *recommended* mapping file to the Glue Temp bucket,  `<environment>-insurancelake-<account>-<region>-glue-temp` bucket, in the folder `/etl/collect_to_cleanse` following the naming convention `<database>-<table>.csv`.
 
 When this behavior occurs, you will see the following log message in the Glue Job Output Logs:
 ```log
@@ -158,7 +158,7 @@ Consider a data source with the following column headers:
 
 ### Exact Matching
 
-Using double-quotes around `SourceName` values allows you to specify line breaks in the CSV mapping file. This method performs an exact match. Specifically this method requires you to match your line break characters exactly in the mapping configuration. If the data sources columns have varying line breaks, this can be a challenge. Consider using [fuzzy matching](#fuzzy-matching) for complex or changing column headers.
+Using double-quotes around `SourceName` values allows you to specify line breaks in the CSV mapping file. This method performs an exact match. Specifically **this method requires you to match your line break characters exactly in the mapping configuration**. If the data sources columns have varying line breaks, this can be a challenge. Consider using [fuzzy matching](#fuzzy-matching) for complex or changing column headers.
 
 Example exact matching to handle line breaks:
 
@@ -191,7 +191,7 @@ Claim/Incident/Report,claim_incident_report,95,ratio
 
 ## Fixed Width File Format
 
-Fixed width data sources require a `fixed` JSON object in the `input_schema`section of the transformation spec. See the [file formats documentation](./file_formats.md#fixed-width) for more information.
+Fixed width data sources require a `fixed` JSON object in the `input_schema` section of the transformation configuration file. See the [file formats documentation](./file_formats.md#fixed-width) for more information.
 
 |Field	|Type	|Description
 |---    |---    |---

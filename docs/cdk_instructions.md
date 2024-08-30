@@ -1,4 +1,13 @@
-# CDK Instructions
+## Contents
+
+* [Prerequisities](#prerequisites)
+* [Setup Instruction](#setup-instructions)
+* [Useful Commands](#useful-commands)
+* [Visual Studio Code Debugging](#visual-studio-code-debugging)
+* [Clean-up Workflow-created Resources](#clean-up-workflow-created-resources)
+* [Clean-up ETL Stacks](#clean-up-etl-stacks)
+* [Clean-up Infrastructure Stacks](#clean-up-infrastructure-stacks)
+* [Clean-up CDK Bootstrap](#clean-up-cdk-bootstrap-optional)
 
 ## Prerequisites
 
@@ -68,7 +77,7 @@ command.
 
  ---
 
- ## Visual Studio Code Debugging
+## Visual Studio Code Debugging
 
  To configure Visual Studio Code for debugging CDK, use the following launch configuration in `launch.json`:
 
@@ -139,7 +148,7 @@ command.
 1. Delete stacks using the command `cdk destroy --all`. When you see the following text, enter **y**, and press enter/return.
 
    ```bash
-   Are you sure you want to delete: TestInsuranceLakeInfrastructurePipeline, ProdInsuranceLakeInfrastructurePipeline, DevInsuranceLakeInfrastructurePipeline (y/n)?
+   Are you sure you want to delete: Test-InsuranceLakeInfrastructurePipeline, Prod-InsuranceLakeInfrastructurePipeline, Dev-InsuranceLakeInfrastructurePipeline (y/n)?
    ```
 
    Note: This operation deletes the pipeline stacks only in the central deployment account

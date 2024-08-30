@@ -1,4 +1,4 @@
-# InsuranceLake Collect-to-Cleanse Transform Index
+The following reference guide describes each of the user-configured data transforms provided with the InsuranceLake ETL. The library of transforms can be extended by users of InsuranceLake using pySpark.
 
 |Formatting	|Description
 |---	|---
@@ -53,35 +53,51 @@
 
 - For an example of all transforms in one place, refer to the [all-transforms-example.json](../lib/glue_scripts/transformation-spec/all-transforms-example.json) in the `transformation-spec` directory of the repository.
 
-- The order that you enter the transforms into the json file is important, and should be chosen deliberately. Each transform is executed in the order they are defined on the incoming dataset starting from the beginning of the transform_spec section of the file.
+- The order that you enter the transforms into the JSON file is important, and should be chosen deliberately. Each transform is executed in the order they are defined on the incoming dataset starting from the beginning of the transform_spec section of the file.
+
+- If a transform name is specified in the configuration that is undefined (no transform function exists), the workflow **will not fail**. Instead you will see a warning message in the logs (below). The remaining transforms will be executed; this behavior is designed to make iterative development easier.
+
+    ```log
+    Transform function transform_futuretransform called for in SyntheticGeneralData-PolicyData.json not implemented
+    ```
 
 - Except where noted, transforms will overwrite an existing field if specified as the result field. Where available use the `source` parameter to indicate that a different column should be used as the source data, and the column specified in the `field` parameter should be used for the result value. Specifying a source field to create a new column for transforms is useful for debugging issues with a transform, preserving original data, or having a backup datapoint available when incoming data formats are less clear.
 
 ## Using Transforms More Than Once
 
-- Each transform type can only be used once in the transform specification. This limitation helps the transform implementation reduce the number of Spark withColumn statements (using withColumns or select), and [optimize the workflow performance](https://medium.com/@manuzhang/the-hidden-cost-of-spark-withcolumn-8ffea517c015).
+Transform types can be specified more than once in the transform specification by using an optional unique suffix, in the form of `:` following by a string. The string can be any number or identifier that is meaningful to the data pipeline designer. The suffix does not determine the order of exection; the transforms are executed in the order they are defined in the transform specification.
+
+- **Important Note:** InsuranceLake-provided transforms are optimized to run in a single group using Spark's `withColumns` and `select` DataFrame methods. Specifying multiple transform types will limit this optimization and should only be used when strictly necessary for the workflow. Read more about optimizing workflow performance when running a large number of transforms in [The hidden cost of Spark withColumn](https://medium.com/@manuzhang/the-hidden-cost-of-spark-withcolumn-8ffea517c015).
 
 ```json
-	"transform_spec": {
-		"changetype": {
-			"monthlypremium": "decimal(10,2)"
-		},
-		"columnfromcolumn": [
-			{
-				"field": "policyyear",
-				"source": "policyeffectivedate",
-				"pattern": "(\\d\\d\\d\\d)/\\d\\d/\\d\\d"
-			}
+    "transform_spec": {
+        "lookup:1": [
+            {
+                "field": "CoverageCode",
+                "source": "CoverageName",
+                "lookup": "CoverageCode"
+            }
         ],
-		"changetype": {
-			"monthlypremium": "decimal(10,2)"
-		}
-    }        
+        "combinecolumns": [
+            {
+				"field": "Program",
+				"format": "{}-{}",
+				"source_columns": [ "CoverageCode", "PolicyYear" ]
+            }
+        ],
+        "lookup:2": [
+            {
+                "field": "ProgramCode",
+                "source": "Program",
+                "lookup": "ProgramCode"
+            }
+        ]
+    }
 ```
 
 ## Behavior When There is No Transformation Specification
 
-When there is transformation specification file or an empty transformation specification in the etl-scripts bucket for the workflow, **the ETL will perform no transformations**. However, the ETL will save a *recommended* transformation specification file to the Glue Temp bucket,  `<environment>-insurancelake-<account>-<region>-glue-temp` bucket, in the folder `/etl/collect_to_cleanse` following the naming convention `<database>-<table>.json`.
+When there is no transformation specification file or an empty transformation specification in the etl-scripts bucket for the workflow, **the ETL will perform no transformations**. However, the ETL will save a *recommended* transformation specification file to the Glue Temp bucket,  `<environment>-insurancelake-<account>-<region>-glue-temp` bucket, in the folder `/etl/collect_to_cleanse` following the naming convention `<database>-<table>.json`.
 
 When this behavior occurs, you will see the following log message in the Glue Job Output Logs:
 ```log
@@ -106,10 +122,10 @@ Convert specified numeric field with currency formatting to Decimal (fixed preci
 |field    |required    |Name of (destination) field to hold the resulting decimal conversion, and source field if source not specified separately
 |format    |optional    |Decimal precision and scale (separated by comma), defaults to 16,2
 |source    |optional    |Name of source field, defaults to destination field
-|euro    |optional    |If `true`, handle European (5.000.000,12) currency format, otherwise handle 5,000,000.12; defaults to `false`
+|euro    |optional    |If `true`, handle European (5.000.000,12 or 5 000 000,12) currency format, otherwise handle 5,000,000.12; defaults to `false`
 
 - While this transform will work on numeric fields, we recommend `changetype` to convert to decimal values because it is more efficient when combined with other data type changes.
-- This conversion essentially extracts any valid number from a string value; it removes any character that is not in `[0-9,-.]`
+- This conversion essentially extracts any valid number from a string value; it removes any character that is not in `[0-9,-.]`.
 
 ```json
 "currency": [
@@ -659,7 +675,7 @@ Replace or add specified column values with values looked up from an DynamoDB ta
 |source |optional   |Source field with values matching the lookup data; defaults to destination field
 |lookup    |required   |Name of lookup set of data which is used to match the `column_name` attribute in the DynamoDB table
 |nomatch  |optional   |Value to use for lookups that have no match; defaults to null. **Must be the same data type as the looked up data.**
-|source_system  |optional   |Value to use for the `source_system` attribute in the DynamoDB table; defaults to the database name or ([first level folder structure name in the Collect bucket](../README.md#bucket-layout)). Use this override parameter to share lookups across different databases.
+|source_system  |optional   |Value to use for the `source_system` attribute in the DynamoDB table; defaults to the database name or ([first level folder structure name in the Collect bucket](loading_data.md#bucket-layout)). Use this override parameter to share lookups across different databases.
 
 ```json
 "lookup": [
@@ -677,12 +693,14 @@ Replace or add specified column values with values looked up from an DynamoDB ta
 ]
 ```
 
+- If your lookup data exceeds the [DynamoDB item size limit](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html#limits-items), consider using the [multilookup](#multilookup) transform instead, which will split the lookup data into multiple items.
+
 - The provided `resources/load_dynamodb_lookup_table.py` script can be used to load prepared JSON data into the DynamoDB table:
 
     - Script parameters:
         |Parameter  |Type   |Description    |
         |---    |---    |---    |
-        |source_system  |required   |String value that should match the source system name ([first level folder structure name in the Collect bucket](../README.md#bucket-layout)) for the workflow that will use the lookup
+        |source_system  |required   |String value that should match the source system name ([first level folder structure name in the Collect bucket](loading_data.md#bucket-layout)) for the workflow that will use the lookup
         |table_name |required   |The name of the DynamoDB table deployed by the InsuranceLake CDK stack for single value lookups, in the form `<environment>-<resource prefix>-etl-value-lookup`
         |data_file  |required   |Filename of the local JSON file containing lookup data to load into DynamoDB (format below)
 
@@ -728,7 +746,7 @@ Add columns looked up from an external table using multiple conditions, returnin
 
 - The `match_columns` names only refer to the incoming dataset. The column names in your lookup data (in DynamoDB) do not matter, because all the lookup column values are stored in a concatenated string in the lookup_item sort key.
 
-- **Important Note:** If a column already exists, a duplicate column will be created, which will raise an error when saving to Parquet format. Take care to map your incoming dataset correctly so that it has unique column names after performing the multilookup transform. For example, suppose your incoming data has a `lineofbusiness` column, but it is composed of bespoke values that you want to normalize. Best practice would be to use the schema map to rename `lineofbusiness` to `originallineofbusiness` so the incoming data is preserved, and use the multilookup to return a new (normalized) `lineofbusiness` attribute value.
+- **Important Note:** If a column specified in `return_attributes` already exists, a duplicate column will be created, which will raise an error when saving to Parquet format. Take care to map your incoming dataset correctly so that it has unique column names after performing the multilookup transform. For example, suppose your incoming data has a `lineofbusiness` column, but it is composed of bespoke values that you want to normalize. Best practice would be to use the schema map to rename `lineofbusiness` to `originallineofbusiness` so the incoming data is preserved, and use the multilookup to return a new (normalized) `lineofbusiness` attribute value.
 
 - The provided `resources/load_dynamodb_multilookup_table.py` script can be used to load prepared CSV data into the DynamoDB table:
 
@@ -746,6 +764,8 @@ Add columns looked up from an external table using multiple conditions, returnin
         ```
 
     - The lookup data file should be saved as CSV and include all the match columns and return value columns. It is ok to have some columns that are not used, because the transform specification allows the user to select the specific return columns they want in each transform.
+
+    - All columns that are not specified as lookup columns in the CSV file will be imported as separate attributes in the DynamoDB table and be available as return attributes.
 
 ### filldown
 Fill starting column value down the columns for all null values until the next non-null
@@ -781,7 +801,7 @@ Filter out rows based on standard SQL WHERE statement
 |condition    |required    |String filter condition using [Spark WHERE clause syntax](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-where.html); **rows that match will remain in the data set**
 |description    |optional    |This parameter will be ignored, but we recommend using it to document the purpose of each filter condition
 
-- Use only when certain rows can be systematically and confidently discarded. Examples of usage include removing blank rows, removing a totals rows, or removing subtotal rows. If review of filtered data is desired, consider using [data quality quarantine rules](./data_quality.md).
+- Use only when certain rows can be systematically and confidently discarded. Examples of usage include removing blank rows, removing a totals rows, or removing subtotal rows. If review of filtered data is desired, consider using [data quality quarantine rules](data_quality.md). An example of both options can be found in the [Corrupt Data section of the Loading Data with InsurnaceLake Documentation](loading_data.md#corrupt-data).
 
 ```json
 "filterrows": [
@@ -803,6 +823,7 @@ Merge column values using coalesce
 |field    |required    |Name of (destination) field to hold the result of merging/coalescing the source columns; can be the same field as one of the source columns, which will overwrite the original value
 |source_list    |required    |List of source column names specified as a JSON array (at least 1 is required)
 |default    |optional   |Specifies the literal value to use when all source columns have empty (null) values, defaults to null
+|empty_string_is_null   |optional   |Specifies whether empty strings should be treated as null values, in other words, whether empty string values should be replaced; defaults to false
 
 ```json
 "merge": [
@@ -811,7 +832,8 @@ Merge column values using coalesce
         "source_list": [
             "insuredstatename", "insuredstatecode"
         ],
-        "default": "Unknown"
+        "default": "Unknown",
+        "empty_string_is_null": true
     }
 ]
 ```

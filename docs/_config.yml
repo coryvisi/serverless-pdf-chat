@@ -1,5 +1,5 @@
+title: AWS InsuranceLake
+description: Collect, Cleanse, and Consume all your insurance data in one secure and scalable location
 remote_theme: pages-themes/cayman@v0.2.0
 plugins:
 - jekyll-remote-theme
-title: AWS InsuranceLake
-description: Serverless modern data lake solution and reference architecture fit for the insurance industry built on AWS

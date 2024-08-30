@@ -1,22 +1,21 @@
-## How to Manage Data Quality
-
-### Contents
+## Contents
 
 * [Getting Started](#getting-started)
 * [Configuration](#configuration)
 * [CustomSQL and ETL Behavior Notes](#customsql-and-etl-behavior-notes)
 * [Using Data Freshness to Manage Dependent Workflows](#using-data-freshness-to-manage-dependent-workflows)
 
-### Getting Started
 
-Generally, we recommend loading your data into Glue Catalog with minimal transforms as a first step to building data quality rules. After loading your data, Glue Data Quality Recommendations and Glue Studio can help build rules based on exploring and understanding the data.
+## Getting Started
+
+Generally, we recommend loading your data into Glue Catalog with minimal or no transforms as a first step to building data quality rules. After loading your data, AWS Glue Data Quality Recommendations and AWS Glue Studio can help build rules based on exploring and understanding the data.
 
 Consider the following steps for building and testing new data quality rules:
 
 1. Load your data using InsuranceLake (Cleanse and/or Consume bucket)
     - To build and test `before_transform` rules, ensure that you have a minimal transform specification defined for your dataset
     - To build and test `after_transform` rules, ensure that your have an as complete as possible transform specification defined for your dataset
-    - To build and test `after_sparksql` rules, ensure that you have a Spark SQL file configured for your dataset
+    - To build and test `after_sparksql` rules, ensure that you have a Spark SQL file configured as complete as possible for your dataset
 1. Navigate to the database and table in the Glue Catalog
     - For `before_transform` and `after_transform` rules, choose the table in the Cleanse bucket
     - For `after_sparksql` rules, choose the table in the Consume bucket
@@ -26,7 +25,7 @@ Consider the following steps for building and testing new data quality rules:
 1. Select the IAM role for Glue created by InsuranceLake
     ![Configuring Glue Data Quality Recommendations](./glue_catalog_recommend_data_quality_rules.png)
 1. After the analyzer runs, recommendations will be avilable to add to your set of rules
-![Using Data Quality recommendations from Glue Data Catalog](./glue_catalog_data_quality_recommendations.png)
+    ![Using Data Quality recommendations from Glue Data Catalog](./glue_catalog_data_quality_recommendations.png)
 1. Insert recommendations, create your own rules, and test run the rules using the console interface
     - For more details, see the AWS Glue documentation [Getting started with AWS Glue Data Quality for the Data Catalog](https://docs.aws.amazon.com/glue/latest/dg/data-quality-getting-started.html)
 1. Copy and paste the rules into the `dq-rules` [configuration file](#configuration) for your dataset
@@ -34,7 +33,8 @@ Consider the following steps for building and testing new data quality rules:
 
 You can also refer to the [Getting started with AWS Glue Data Quality for ETL Pipelines](https://aws.amazon.com/blogs/big-data/getting-started-with-aws-glue-data-quality-for-etl-pipelines/) blog for guidance and examples.
 
-### Configuration
+
+## Configuration
 
 Data quality in InsuranceLake is provided using Glue Data Quality rules managed in a per-workflow JSON configuration file. 
 
@@ -73,6 +73,8 @@ InsuranceLake data quality configuration supports three types of actions to take
 
 * Quarantine: `quarantine_rules`
     - Individual rows that fail the quality check are removed from the incoming data and stored in a separate quarantine storage location and Glue Catalog table.
+    - The Glue Catalog table for each data quality location will be created regardless of whether any rows are quarantined. If no rows are quarantined, the table will be empty. This behavior facilitates setting up connections to quarantined data before encountering any.
+    - When re-loading data for an existing partition, the ETL Glue jobs clear the specific partition from each of the quarantine storage locations and tables.
     - The schema of the quarantined data will reflect the schema of the data at the respective stage of the data pipeline. To handle these schema differences, quarantined data will be published in different tables and locations in S3 for each stage of the pipeline (as indicated above).
     - The data quality expression must rely on row level outcomes to evaluate and quarantine individual rows. See [Custom SQL and ETL Behavior](#customsql-and-etl-behavior-notes) for examples.
     - Rules that rely on ratios or thresholds are not supported as quarantine rules. See the [How Composite rules work](https://docs.aws.amazon.com/glue/latest/dg/dqdl.html#dqdl-syntax-composite-rules) in the AWS Glue Data Quality Documentation for more details.
@@ -119,7 +121,8 @@ Example data quality configuration file:
 }
 ```
 
-### CustomSQL and ETL Behavior Notes
+
+## CustomSQL and ETL Behavior Notes
 
 * Glue Data Quality CustomSQL shares its syntax with Spark SQL with some limitations. Refer to the [AWS Glue DQDL documentation on CustomSQL](https://docs.aws.amazon.com/glue/latest/dg/dqdl.html#dqdl-rule-types-CustomSql) for specific examples as well as the [Apache Spark SQL Reference documentation](https://spark.apache.org/docs/latest/sql-ref.html).
 
@@ -136,12 +139,12 @@ Example data quality configuration file:
     * This limitation results in multi-dataset rules being unusable from the InsuranceLake ETL (for example, `DatasetMatch`, `ReferentialIntegrity`, `SchemaMatch`, and `RowCountMatch`).
         * NOTE: A rule that supports an optional external reference (for example `AggregateMatch`) can only be used on columns in the primary dataset.
 
-* A failing `after_sparksql` rule will not rollback the data saved to the cleanse bucket in the same workflow exection.
+* A failing `after_sparksql` rule will not rollback the data saved to the **Cleanse bucket** in the same workflow execution.
 
 * Refer to [Measure performance of AWS Glue Data Quality for ETL pipelines](https://aws.amazon.com/blogs/big-data/measure-performance-of-aws-glue-data-quality-for-etl-pipelines/) for detailed information on data quality rule performance and cost.
 
 
-### Using Data Freshness to Manage Dependent Workflows
+## Using Data Freshness to Manage Dependent Workflows
 
 In this section, we show an alternative to the traditional approach of building dependency trees for data pipeline jobs to ensure that the most recent dependent data is joined and published.
 
@@ -151,7 +154,8 @@ We can use [AWS Glue DQDL CustomSQL](https://docs.aws.amazon.com/glue/latest/dg/
 
 Notes:
 - We use CustomSQL expressions to check data freshness, because it has the most functionality within Glue Data Quality. Specifically, DataFreshness does not support `with threshold` at this time, and ColumnValues does not support `with threshold` with date comparisons. Date comparisons with DataFreshness and ColumnValues are also limited to days and hours.
-- We do not check (or exclude) null claim last updated dates, because this simply means that the policy had no claims, which does not tell us if the data was updated. Null claim last updated dates will not be counted towards our threshold.
+- We exclude null (empty) claim last updated dates, because this simply means that the policy had no claims, which does not tell us if the data was updated. The empty values for last updated dates is an intended result of the `LEFT OUTER JOIN`. Null claim last updated dates will not be counted towards our threshold.
+- We assume that at least one policy will have a claim each day (an empty claim data set should not be processed).
 
 Use Spark SQL to join the policy and claim data, each with a uniquely named last updated field:
 ```sql
@@ -184,11 +188,11 @@ Use data quality rules to require (a failing rule halts the pipeline) claim data
 ```json
 {
     "after_sparksql": {
-		"warn_rules": [
+        "warn_rules": [
             "CustomSql 'SELECT count(*) FROM primary WHERE claims_last_updated >= now() - interval 8 hours' >= 1",
             "CustomSql 'SELECT count(*) FROM primary WHERE policies_last_updated >= now() - interval 1 month' >= 100"
         ],
-		"halt_rules": [
+        "halt_rules": [
             "CustomSql 'SELECT count(*) FROM primary WHERE claims_last_updated >= now() - interval 24 hours' >= 1",
             "CustomSql 'SELECT count(*) FROM primary WHERE policies_last_updated >= now() - interval 1 month' >= 1"
         ]

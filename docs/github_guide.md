@@ -1,5 +1,3 @@
-# AWS CodePipeline and GitHub integration
-
 Integration between AWS CodePipeline and GitHub requires a personal access token. This access token is stored in Secrets Manager. This is a one-time setup and is applicable for all target AWS environments and all repositories created under the organization in GitHub.com. Follow the below steps:
 
 1. **Note:** Do **NOT** commit these values to your repository

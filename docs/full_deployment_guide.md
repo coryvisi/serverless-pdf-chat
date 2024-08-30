@@ -1,8 +1,10 @@
-# Full Deployment
+# InsuranceLake Full Deployment Guide
 
 This section provides complete instructions for three deployment environments, and a separate central deployment account for pipelines.
 
 ---
+
+## Contents
 
 * [Explanation](#explanation)
   * [Logistical Requirements](#logistical-requirements)
@@ -23,7 +25,7 @@ This section provides complete instructions for three deployment environments, a
 
 ### Logistical Requirements
 
-* **Four AWS accounts for full deployment** One of them acts like a central deployment account. The other three are for development, test, and production accounts. To test this solution with single account refer to the [Quickstart section of the README](./README.md#quickstart) for detailed instructions.
+* **Four AWS accounts for full deployment** One of them acts like a central deployment account. The other three are for development, test, and production accounts. To test this solution with a single account refer to the [Quickstart guide](../README.md#quickstart) for detailed instructions.
 
 * **Number of branches on your GitHub repo** You need to start with at least one branch (e.g. main) to start using this solution. Test and prod branches can be added at the beginning or after the deployment of the data lake infrastructure on the dev environment.
 
@@ -52,7 +54,7 @@ To demonstrate this solution, we need 4 AWS accounts as follows:
 
 Figure below represents the centralized deployment model.
 
-![Aws-cdk-datalake-branch_strategy](./Aws-cdk-pipelines-blog-datalake-branch_strategy_etl.png)
+![Data Lake Repository Branch Strategy](Aws-cdk-pipelines-blog-datalake-branch_strategy_etl.png)
 
 There are few interesting details to point out here:
 
@@ -68,7 +70,7 @@ There are few interesting details to point out here:
 
 Figure below illustrates the continuous delivery of ETL resources for the data lake.
 
-![Aws-cdk-datalake-continuous-delivery](./Aws-cdk-pipelines-blog-datalake-continuous_delivery_data_lake_etl.png)
+![Data Lake CDK Pipeline Continuous Delivery](Aws-cdk-pipelines-blog-datalake-continuous_delivery_data_lake_etl.png)
 
 There are few interesting details to point out here:
 
@@ -85,11 +87,13 @@ There are few interesting details to point out here:
 
 ### Software Installation
 
-NOTE: If using AWS Cloud9, you need only fork the repository, as the other software is pre-installed.
+NOTE: If using AWS Cloud9, you need only fork the repository, and proceed to [AWS Environment Bootstrapping](#aws-environment-bootstrapping), as the other software is pre-installed.
 
 1. **AWS CLI** - make sure you have AWS CLI configured on your system. If not, refer to [Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) for more details.
 
-1. **Python** - make sure you have Python SDK installed on your system. We recommend Python 3.9 and above.
+1. **Python** - make sure you have [Python](https://www.python.org/downloads/) installed on your system. Python 3.9 and above is required.
+
+1. **Node.js and CDK** - Python CDK requires [Node.js](https://nodejs.org/en/download/package-manager/) and the [Node.js CDK CLI](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html) to be installed on your system
 
 1. **GitHub Fork** - we recommend you [fork the repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo) so you are in control of deployed resources.
 
@@ -98,15 +102,15 @@ NOTE: If using AWS Cloud9, you need only fork the repository, as the other softw
 Environment bootstrap is standard CDK process to prepare an AWS environment ready for deployment. Follow the steps:
 
 1. Open a command line interface (terminal)
-1. Go to project root directory where [app.py](app.py) file exists
+1. Go to project root directory where [app.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/app.py) file exists
 
-1. Create Python virtual environment. This is a one-time activity.
+1. Create Python virtual environment; this is a one-time activity
 
     ```bash
    python3 -m venv .venv
    ```
 
-1. Expected output: you will see a folder with name **.venv** created in project root folder. You can run the following command to see its contents ```ls -la .venv```
+1. Expected output: you will see a folder with name `.venv` created in project root folder. You can run the following command to see its contents: `ls -la .venv`
 
    ```bash
    total 8
@@ -176,7 +180,7 @@ Environment bootstrap is standard CDK process to prepare an AWS environment read
    If your organization requires additional customizations to the bootstrap process, you may need to customize and deploy the bootstrap template. For more information, refer to [the Customizing bootstrapping section of the CDK documentation](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html).
 
 
-1. When you see the following text, enter **y**, and press enter/return
+1. When you see the following text, enter `y`, and press enter
 
    ```bash
    Are you sure you want to bootstrap {
@@ -189,15 +193,15 @@ Environment bootstrap is standard CDK process to prepare an AWS environment read
 1. Expected outputs:
    1. In your terminal, you see:
 
-   ```bash
-   ✅  Environment aws://deployment_account_id/us-east-2 bootstrapped.
-   ```
+      ```bash
+      ✅  Environment aws://deployment_account_id/us-east-2 bootstrapped.
+      ```
 
-   1. You see a stack created in your deployment account as follows
+   1. You will see a stack created in your deployment account as follows:
 
-      ![bootstrap_central_deployment_account](./bootstrap_central_deployment_account_exp_output.png)
+      ![Central Deployment Account Bootstrap](bootstrap_central_deployment_account_exp_output.png)
 
-   1. You see an S3 bucket created in central deployment account. The name is like ```cdk-hnb659fds-<assets-deployment_account_id>-us-east-2```
+   1. You see an S3 bucket created in central deployment account. The name is like `cdk-hnb659fds-<assets-deployment_account_id>-us-east-2`
 
 1. Before you bootstrap the **dev** account, set the AWS_PROFILE environment variable
 
@@ -208,46 +212,56 @@ Environment bootstrap is standard CDK process to prepare an AWS environment read
 1. Bootstrap **dev** account
 
    1. Enter the following command:
-   ```bash
-   ./lib/prerequisites/bootstrap_target_account.sh <central_deployment_account_id> arn:aws:iam::aws:policy/AdministratorAccess
-   ```
+
+      ```bash
+      ./lib/prerequisites/bootstrap_target_account.sh <central_deployment_account_id> arn:aws:iam::aws:policy/AdministratorAccess
+      ```
 
    1. When you see the following text, enter y, and press enter
 
-   ```bash
-   Are you sure you want to bootstrap {
-      "UserId": "user_id",
-      "Account": "dev_account_id",
-      "Arn": "arn:aws:iam::dev_account_id:user/user_id"
-   } providing a trust relationship to: deployment_account_id using policy arn:aws:iam::aws:policy/AdministratorAccess? (y/n)
-   ```
+      ```bash
+      Are you sure you want to bootstrap {
+         "UserId": "user_id",
+         "Account": "dev_account_id",
+         "Arn": "arn:aws:iam::dev_account_id:user/user_id"
+      } providing a trust relationship to: deployment_account_id using policy arn:aws:iam::aws:policy/AdministratorAccess? (y/n)
+      ```
 
-   1. In your terminal, you see: ✅ Environment aws://dev_account_id/us-east-2 bootstrapped.
+   1. In your terminal, you will see:
+
+      ```bash
+      ✅ Environment aws://dev_account_id/us-east-2 bootstrapped.
+      ```
 
 1. Before you bootstrap the **test** account, set the AWS_PROFILE environment variable
 
-   ```bash
-   export AWS_PROFILE=replace_it_with_test_account_profile_name_before_running
-   ```
+      ```bash
+      export AWS_PROFILE=replace_it_with_test_account_profile_name_before_running
+      ```
 
 1. Bootstrap **test** account
 
    1. Enter the following command:
-   ```bash
-   ./lib/prerequisites/bootstrap_target_account.sh <central_deployment_account_id> arn:aws:iam::aws:policy/AdministratorAccess
-   ```
 
-   1. When you see the following text, enter **y**, and press enter
+      ```bash
+      ./lib/prerequisites/bootstrap_target_account.sh <central_deployment_account_id> arn:aws:iam::aws:policy/AdministratorAccess
+      ```
 
-   ```bash
-   Are you sure you want to bootstrap {
-      "UserId": "user_id",
-      "Account": "test_account_id",
-      "Arn": "arn:aws:iam::test_account_id:user/user_id"
-   } providing a trust relationship to: deployment_account_id using policy arn:aws:iam::aws:policy/AdministratorAccess? (y/n)
-   ```
+   1. When you see the following text, enter `y`, and press enter
 
-   1. In your terminal, you see: ✅ Environment aws://test_account_id/us-east-2 bootstrapped.
+      ```bash
+      Are you sure you want to bootstrap {
+         "UserId": "user_id",
+         "Account": "test_account_id",
+         "Arn": "arn:aws:iam::test_account_id:user/user_id"
+      } providing a trust relationship to: deployment_account_id using policy arn:aws:iam::aws:policy/AdministratorAccess? (y/n)
+      ```
+
+   1. In your terminal, you will see:
+
+      ```bash
+      ✅ Environment aws://test_account_id/us-east-2 bootstrapped.
+      ```
 
 1. Before you bootstrap the **prod** account, set the AWS_PROFILE environment variable
 
@@ -258,31 +272,36 @@ Environment bootstrap is standard CDK process to prepare an AWS environment read
 1. Bootstrap **prod** account
 
    1. Enter the following command:
-   ```bash
-   ./lib/prerequisites/bootstrap_target_account.sh <central_deployment_account_id> arn:aws:iam::aws:policy/AdministratorAccess
-   ```
 
-   1. When you see the following text, enter **y**, and press enter
+      ```bash
+      ./lib/prerequisites/bootstrap_target_account.sh <central_deployment_account_id> arn:aws:iam::aws:policy/AdministratorAccess
+      ```
 
-   ```bash
-   Are you sure you want to bootstrap {
-      "UserId": "user_id",
-      "Account": "prod_account_id",
-      "Arn": "arn:aws:iam::prod_account_id:user/user_id"
-   } providing a trust relationship to: deployment_account_id using policy arn:aws:iam::aws:policy/AdministratorAccess? (y/n)
-   ```
+   1. When you see the following text, enter `y`, and press enter
 
-   1. In your terminal, you see: ✅ Environment aws://prod_account_id/us-east-2 bootstrapped.
+      ```bash
+      Are you sure you want to bootstrap {
+         "UserId": "user_id",
+         "Account": "prod_account_id",
+         "Arn": "arn:aws:iam::prod_account_id:user/user_id"
+      } providing a trust relationship to: deployment_account_id using policy arn:aws:iam::aws:policy/AdministratorAccess? (y/n)
+      ```
+
+   1. In your terminal, you will see:
+
+      ```bash
+      ✅ Environment aws://prod_account_id/us-east-2 bootstrapped.
+      ```
 
 ---
 
 ### Application Configuration
 
-This deployment will depend on both the [Infrastructure](https://github.com/aws-samples/aws-insurancelake-infrastructure) and [ETL](https://github.com/aws-samples/aws-insurancelake-etl) repositories associated with the project.
+This deployment will depend on both the [Infrastructure](https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure) and [ETL](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl) repositories associated with the project.
 
 Before we deploy our resources we must provide the manual variables and upon deployment the CDK Pipelines will programmatically export outputs for managed resources. Follow the below steps to setup your custom configuration:
 
-1. Go to [configuration.py](./lib/configuration.py) and fill in values under `local_mapping` dictionary within the function `get_local_configuration` as desired.
+1. Go to [configuration.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/configuration.py) and fill in values under `local_mapping` dictionary within the function `get_local_configuration` as desired.
 
    **NOTE:** You can safely commit these values to your repository
 
@@ -356,17 +375,17 @@ Before we deploy our resources we must provide the manual variables and upon dep
    }
    ```
 
-1. Copy the ```configuration.py``` file to the ETL repository:
+1. Copy the `configuration.py` file to the ETL repository:
 
    ```bash
    cp lib/configuration.py ../aws-insurancelake-etl/lib/
    ```
 
-1. Edit the ```configuration.py``` in the ETL repository and modify the repository configuration parameters to reference the ETL code repository.
+1. Edit the `configuration.py` in the ETL repository and modify the repository configuration parameters to reference the ETL code repository.
 
    **NOTE:** We recommend that you keep the logical ID prefix and resource name prefix consistent between repositories.
 
-1. Go to [tagging.py](./lib/tagging.py) and adjust the tag names and values in the `tag_map` dictionary within the function `get_tag` as needed by your organization. You can edit the existing tag parameters, or add your own tag parameters.
+1. Go to [tagging.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/tagging.py) and adjust the tag names and values in the `tag_map` dictionary within the function `get_tag` as needed by your organization. You can edit the existing tag parameters, or add your own tag parameters.
 
    If you added any tag parameters, make sure you add them to the `cdk.Tags.of` calls in the `tag` function.
 
@@ -397,7 +416,7 @@ Before we deploy our resources we must provide the manual variables and upon dep
    }
    ```
 
-1. Copy the ```tagging.py``` file to the ETL repository:
+1. Copy the `tagging.py` file to the ETL repository:
 
    ```bash
    cp lib/tagging.py ../aws-insurancelake-etl/lib/
@@ -471,8 +490,8 @@ Integration between AWS CodePipeline and Atlassian Bitbucket requires createing 
    export AWS_PROFILE=replace_it_with_deployment_account_profile_name_before_running
    ```
 
-1. Go to the infrastructure project root directory where ```cdk.json``` and ```app.py``` exist
-1. Run the command ```cdk ls```
+1. Go to the infrastructure project root directory where `cdk.json` and `app.py` exist
+1. Run the command `cdk ls`
 1. Check the following CloudFormation stack names listed on your terminal
 
    ```bash
@@ -488,40 +507,34 @@ Integration between AWS CodePipeline and Atlassian Bitbucket requires createing 
    Prod-InsuranceLakeInfrastructurePipeline/Prod/InsuranceLakeInfrastructureVpc
    ```
 
-   **NOTE:**
-   1. Here, **InsuranceLake** string literal is the value of ```LOGICAL_ID_PREFIX``` configured in [configuration.py](./lib/configuration.py)
+   **Note:**
+   1. Here, `InsuranceLake` string literal is the value of `LOGICAL_ID_PREFIX` configured in [configuration.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/configuration.py).
    1. The first three stacks represent the CDK Pipeline stacks which will be created in the deployment account. For each target environment, there will be three stacks.
 
-1. Run the command ```cdk deploy --all```
+1. Run the command `cdk deploy --all`
 
-   Note that this command will only deploy the AWS Codepipelines for each environment, which will in turn, deploy the rest of the data lake stacks in the respective environment accounts. If each CodePipeline is connected to a populated repository, this deployment will start immediately.
+   * Note: This command will only deploy the AWS Codepipelines for each environment, which will in turn, deploy the rest of the data lake stacks in the respective environment accounts. If each CodePipeline is connected to a populated repository, this deployment will start immediately.
 
 1. Check the following expected outputs:
 
    1. In the deployment account's CloudFormation console, you will see the following CloudFormation stacks created:
 
-      ![Infra_CloudFormation_stacks_in_deployment_account](./cdk_deploy_output_deployment_account_infra.png)
+      ![Infrastructure CodePipeline Stacks Deployed in Central Account](cdk_deploy_output_deployment_account_infra.png)
 
-   1. In the deployment account, the following CodePipelines should be created successfully:
+   1. In the deployment account's CodePipeline console, you will see the Pipelines triggered
 
-      ![Infra_CDK_pipelines_deployment_account](./cdk_pipelines_deployment_account_infra.png)
+1. Wait for the infrastructure resource deployment via CodePipeline to complete, as these are dependencies for the ETL resources
 
-   1. In the deployment account's CodePipeline console, you will see the Pipelines triggered:
-
-      ![CodePipelines_triggered_in_deployment_account](./image.png)
-
-1. Wait for the infrastructure resource deployment to complete, as these are dependencies for the ETL resources
-
-   * In the deployment account's CodePipeline console, you should see the following:
+   * In the deployment account's CodePipeline console, you should see the following (Dev environment shown):
    
-      ![CodePipelines_complete_summary](./dev_codepipeline_in_deployment_account_complete_summary.png)
+      ![Infrastructure CodePipelines Complete](dev_codepipeline_in_deployment_account_complete_summary.png)
 
-   * In the Dev environment's CloudFormation console, CodePipeline will create the following stacks:
+   * CodePipeline will create the following stacks for each environment (visible from the Cloudformation console):
 
-      ![CDK_deploy_all_dev_output](./cdk_pipelines_deployed_stacks_dev_output_infra.png)
+      ![Infrastructure Stacks Deployed in Dev Account](cdk_pipelines_deployed_stacks_dev_output_infra.png)
 
-1. Go to the **ETL** project root directory where ```cdk.json``` and ```app.py``` exist
-1. Run the command ```cdk ls```
+1. Go to the **ETL** project root directory where `cdk.json` and `app.py` exist
+1. Run the command `cdk ls`
 1. Check the following CloudFormation stack names listed on your terminal
 
    ```bash
@@ -543,25 +556,21 @@ Integration between AWS CodePipeline and Atlassian Bitbucket requires createing 
    Prod-InsuranceLakeEtlPipeline/Prod/InsuranceLakeEtlAthenaHelper
    ```
 
-1. Run the command ```cdk deploy --all```
+1. Run the command `cdk deploy --all`
 1. Check the following expected outputs:
 
    1. In the deployment account's CloudFormation console, you will see the following CloudFormation stacks created:
 
-      ![CloudFormation_stacks_in_deployment_account](./cdk_deploy_output_deployment_account_both.png)
+      ![ETL CodePipeline Stacks Deployed in Central Account](cdk_deploy_output_deployment_account_etl.png)
 
-   1. In the deployment account, the following CodePipelines should be created successfully:
+   1. In the deployment account's CodePipeline console, the following pipelines should be created and triggered:
 
-      ![ETL_CDK_pipelines_deployment_account](./cdk_pipelines_deployment_account_etl.png)
+      ![ETL CodePipelines Complete](cdk_pipelines_deployment_account_etl.png)
 
-   1. In the deployment account's CodePipeline console, you will see the Pipelines triggered:
+   1. CodePipeline will create the following stacks for each environment (visible from the Cloudformation console):
 
-      ![CloudFormation_stacks_in_deployment_account](./dev_codepipeline_in_deployment_account.png)
-
-   1. In the Dev environment's CloudFormation console, CodePipeline will create the following stacks:
-
-      ![CDK_deploy_all_dev_output](./cdk_pipelines_deployed_stacks_dev_output_etl.png)
+      ![ETL Stacks Deployed in Dev Account](cdk_pipelines_deployed_stacks_dev_output_etl.png)
 
 1. You can now begin using InsuranceLake in three environments, and iteratively deploy updates!
 
-   To try out the ETL and start loading synthetic insurance data in the **dev** environment, refer to the [Try out the ETL Process](https://github.com/aws-samples/aws-insurancelake-etl#try-out-the-etl-process) section of the [Quickstart guide](https://github.com/aws-samples/aws-insurancelake-etl#quickstart).
+   To try out the ETL and start loading synthetic insurance data in the **dev** environment, refer to the [Try out the ETL Process section of the Quickstart guide](../README.md#try-out-the-etl-process).
