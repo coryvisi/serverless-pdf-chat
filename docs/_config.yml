@@ -1,5 +1,5 @@
 title: AWS InsuranceLake
 description: Collect, Cleanse, and Consume all your insurance data in one secure and scalable location
-remote_theme: pages-themes/cayman@v0.2.0
+remote_theme: tomjoht/documentation-theme-jekyll
 plugins:
 - jekyll-remote-theme
