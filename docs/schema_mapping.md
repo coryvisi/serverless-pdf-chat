@@ -1,3 +1,5 @@
+# InsuranceLake Schema Mapping Documentation
+
 Schema mapping in InsuranceLake is configured by using a comma-delimited text file to describe the source and destination field names.
 
 The filename of the schema mapping configuration file follows the convention of `<database name>-<table name>.csv` and is stored in the `/etl/transformation-spec` folder in the `etl-scripts` bucket. When using CDK for deployment, the contents of the `/lib/glue_scripts/lib/transformation-spec` directory will be automatically deployed to this location.

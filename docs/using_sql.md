@@ -1,3 +1,5 @@
+# InsuranceLake Cleanse-to-Consume SQL Usage Documentation
+
 The InsuranceLake ETL uses SQL to define the views of data created in the Cleanse-to-Consume Glue Job that are stored in the Consume S3 bucket and database with the suffix `_consume`. There are two kinds of SQL files supported:
 
 * **Spark SQL**: Executed by the Spark session within AWS Glue and used to create a partitioned copy of the data in the Consume S3 bucket and Glue Catalog database

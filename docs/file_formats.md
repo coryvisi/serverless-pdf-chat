@@ -1,3 +1,5 @@
+# InsuranceLake File Formats and Input Specification
+
 ## Contents
 
 * [Input Specification](#input-specification)

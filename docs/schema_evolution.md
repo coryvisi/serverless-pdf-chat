@@ -1,3 +1,5 @@
+# InsuranceLake Schema Evolution Documentation
+
 ## Contents
 
 * [Schema Change Setting](#schema-change-setting)
