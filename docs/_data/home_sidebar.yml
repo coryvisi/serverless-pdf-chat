@@ -1,0 +1,153 @@
+entries:
+- title: InsuranceLake: Guidance for Modern Insurance Data Lakes on AWS
+  folders:
+    - title: Overview
+      url: '#insurancelake-overview'
+      output: web
+
+    - title: Architecture Overview
+      url: '#architecture-overview'
+      output: web
+
+
+    - title: Cost
+      url: '#cost'
+      output: web
+
+    - title: Sample Cost Table
+      url: '#sample-cost-table'
+      output: web
+
+
+    - title: Quickstart
+      url: '#quickstart'
+      output: web
+
+    - title: Python/CDK Basics
+      url: '#pythoncdk-basics'
+      output: web
+
+    - title: Deploy the Application
+      url: '#deploy-the-application'
+      output: web
+
+    - title: Try out the ETL Process
+      url: '#try-out-the-etl-process'
+      output: web
+
+    - title: Next Steps
+      url: '#next-steps'
+      output: web
+
+
+    - title: Quickstart with CI/CD
+      url: '#quickstart-with-cicd'
+      output: web
+
+
+    - title: Deployment Validation
+      url: '#deployment-validation'
+      output: web
+
+
+    - title: Cleanup
+      url: '#cleanup'
+      output: web
+
+
+    - title: Architecture
+      url: '#architecture'
+      output: web
+
+    - title: InsuranceLake 3 Cs
+      url: '#insurancelake-3-cs'
+      output: web
+
+    - title: ETL
+      url: '#etl'
+      output: web
+
+
+    - title: Source Code Structure
+      url: '#source-code-structure'
+      output: web
+
+    - title: Transformation Modules
+      url: '#transformation-modules'
+      output: web
+
+    - title: Security
+      url: '#security'
+      output: web
+
+    - title: Testing
+      url: '#testing'
+      output: web
+
+
+    - title: User Documentation
+      output: web
+
+    - title: Loading Data with InsuranceLake
+      url: '/loading_data.html'
+      output: web
+
+    - title: Detailed Collect-to-Cleanse Transform Reference
+      url: '/transforms.html'
+      output: web
+
+    - title: Schema Mapping Documentation
+      url: '/schema_mapping.html'
+      output: web
+
+    - title: File Formats and Input Specification Documentation
+      url: '/file_formats.html'
+      output: web
+
+    - title: Data Quality with Glue Data Quality Reference
+      url: '/data_quality.html'
+      output: web
+
+    - title: Using SQL for Cleanse-to-Consume
+      url: '/using_sql.html'
+      output: web
+
+    - title: Schema Evolution Details
+      url: '/schema_evolution.html'
+      output: web
+
+
+    - title: Developer Documentation
+      output: web
+
+    - title: Developer Guide
+      url: '/developer_guide.html'
+      output: web
+
+    - title: Full Deployment Guide
+      url: '/full_deployment_guide.html'
+      output: web
+
+    - title: AWS CDK Detailed Instructions
+      url: '/cdk_instructions.html'
+      output: web
+
+
+    - title: Additional Resources
+      url: '#additional-resources'
+      output: web
+
+
+    - title: Authors
+      url: '#authors'
+      output: web
+
+
+    - title: Notices
+      url: '#notices'
+      output: web
+
+
+    - title: License Summary
+      url: '#license-summary'
+      output: web
