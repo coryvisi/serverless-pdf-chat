@@ -1,3 +1,8 @@
+---
+title: Full Deployment Guide
+category: developer-documentation
+order: 2
+---
 # InsuranceLake Full Deployment Guide
 
 This section provides complete instructions for three deployment environments, and a separate central deployment account for pipelines.

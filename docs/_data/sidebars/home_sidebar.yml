@@ -2,86 +2,86 @@ entries:
 - title: sidebar
   folders:
     - title: Overview
-      url: '#insurancelake-overview'
+      url: "#insurancelake-overview"
       output: web
 
     - title: Architecture Overview
-      url: '#architecture-overview'
+      url: "#architecture-overview"
       output: web
 
 
     - title: Cost
-      url: '#cost'
+      url: "#cost"
       output: web
 
     - title: Sample Cost Table
-      url: '#sample-cost-table'
+      url: "#sample-cost-table"
       output: web
 
 
     - title: Quickstart
-      url: '#quickstart'
+      url: "#quickstart"
       output: web
 
     - title: Python/CDK Basics
-      url: '#pythoncdk-basics'
+      url: "#pythoncdk-basics"
       output: web
 
     - title: Deploy the Application
-      url: '#deploy-the-application'
+      url: "#deploy-the-application"
       output: web
 
     - title: Try out the ETL Process
-      url: '#try-out-the-etl-process'
+      url: "#try-out-the-etl-process"
       output: web
 
     - title: Next Steps
-      url: '#next-steps'
+      url: "#next-steps"
       output: web
 
 
     - title: Quickstart with CI/CD
-      url: '#quickstart-with-cicd'
+      url: "#quickstart-with-cicd"
       output: web
 
 
     - title: Deployment Validation
-      url: '#deployment-validation'
+      url: "#deployment-validation"
       output: web
 
 
     - title: Cleanup
-      url: '#cleanup'
+      url: "#cleanup"
       output: web
 
 
     - title: Architecture
-      url: '#architecture'
+      url: "#architecture"
       output: web
 
     - title: InsuranceLake 3 Cs
-      url: '#insurancelake-3-cs'
+      url: "#insurancelake-3-cs"
       output: web
 
     - title: ETL
-      url: '#etl'
+      url: "#etl"
       output: web
 
 
     - title: Source Code Structure
-      url: '#source-code-structure'
+      url: "#source-code-structure"
       output: web
 
     - title: Transformation Modules
-      url: '#transformation-modules'
+      url: "#transformation-modules"
       output: web
 
     - title: Security
-      url: '#security'
+      url: "#security"
       output: web
 
     - title: Testing
-      url: '#testing'
+      url: "#testing"
       output: web
 
 
@@ -89,31 +89,31 @@ entries:
       output: web
 
     - title: Loading Data with InsuranceLake
-      url: '/loading_data.html'
+      url: "/loading_data.html"
       output: web
 
     - title: Detailed Collect-to-Cleanse Transform Reference
-      url: '/transforms.html'
+      url: "/transforms.html"
       output: web
 
     - title: Schema Mapping Documentation
-      url: '/schema_mapping.html'
+      url: "/schema_mapping.html"
       output: web
 
     - title: File Formats and Input Specification Documentation
-      url: '/file_formats.html'
+      url: "/file_formats.html"
       output: web
 
     - title: Data Quality with Glue Data Quality Reference
-      url: '/data_quality.html'
+      url: "/data_quality.html"
       output: web
 
     - title: Using SQL for Cleanse-to-Consume
-      url: '/using_sql.html'
+      url: "/using_sql.html"
       output: web
 
     - title: Schema Evolution Details
-      url: '/schema_evolution.html'
+      url: "/schema_evolution.html"
       output: web
 
 
@@ -121,33 +121,33 @@ entries:
       output: web
 
     - title: Developer Guide
-      url: '/developer_guide.html'
+      url: "/developer_guide.html"
       output: web
 
     - title: Full Deployment Guide
-      url: '/full_deployment_guide.html'
+      url: "/full_deployment_guide.html"
       output: web
 
     - title: AWS CDK Detailed Instructions
-      url: '/cdk_instructions.html'
+      url: "/cdk_instructions.html"
       output: web
 
 
     - title: Additional Resources
-      url: '#additional-resources'
+      url: "#additional-resources"
       output: web
 
 
     - title: Authors
-      url: '#authors'
+      url: "#authors"
       output: web
 
 
     - title: Notices
-      url: '#notices'
+      url: "#notices"
       output: web
 
 
     - title: License Summary
-      url: '#license-summary'
+      url: "#license-summary"
       output: web

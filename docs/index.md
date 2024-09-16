@@ -1,3 +1,8 @@
+---
+title: InsuranceLake
+category: overview
+order: 1
+---
 # InsuranceLake
 
 ## Overview

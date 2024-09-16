@@ -1,3 +1,8 @@
+---
+title: Developer Guide
+category: developer-documentation
+order: 1
+---
 # InsuranceLake Developer Guide
 
 ## Contents
