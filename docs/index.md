@@ -1,8 +1,3 @@
----
-title: InsuranceLake
-sidebar: home_sidebar
-permalink: home
----
 # InsuranceLake
 
 ## Overview
