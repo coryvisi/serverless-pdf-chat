@@ -1,6 +1,0 @@
-entries:
-- title: sidebar
-  folders:
-    - title: Overview
-      url: '#insurancelake-overview'
-      output: web
