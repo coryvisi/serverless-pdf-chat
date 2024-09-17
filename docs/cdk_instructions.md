@@ -1,7 +1,7 @@
 ---
 title: CDK Instructions
 category: developer-documentation
-order: 10
+nav_order: 10
 ---
 # CDK Instructions
 

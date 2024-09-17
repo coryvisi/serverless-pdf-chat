@@ -74,11 +74,20 @@ heading_anchors: true
 
 # Aux links for the upper right navigation
 aux_links:
-  "Just the Docs on GitHub":
-    - "https://github.com/just-the-docs/just-the-docs"
+  "Infrastructure on GitHub":
+    - "https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure"
+  "ETL on GitHub":
+    - "https://github.com/aws-solutions-library-samples/aws-insurancelake-etl"
+  "InsuranceLake Quickstart AWS Workshop":
+    - "https://catalog.workshops.aws/insurancelake"
+  "AWS Solutions Library Guidance for Modern Insurance Data Lakes":
+    - "https://aws.amazon.com/solutions/guidance/modern-insurance-data-lakes-on-aws"
+  "InsuranceLake in the AWS Well-Architected Framework Financial Services Industry Lens":
+    - "https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/insurance-lake.html"
+
 
 # Makes Aux links open in a new tab. Default is false
-aux_links_new_tab: false
+aux_links_new_tab: true
 
 # Enable or disable the side/mobile menu globally
 # Nav menu can also be selectively enabled or disabled using page variables or the minimal layout
@@ -90,8 +99,17 @@ nav_enabled: true
 
 # External navigation links
 nav_external_links:
-  - title: Just the Docs on GitHub
-    url: https://github.com/just-the-docs/just-the-docs
+  - title: "Infrastructure on GitHub"
+    url: "https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure"
+  - title: "ETL on GitHub"
+    url: "https://github.com/aws-solutions-library-samples/aws-insurancelake-etl"
+  - title: "InsuranceLake Quickstart AWS Workshop"
+    url: "https://catalog.workshops.aws/insurancelake"
+  - title: "AWS Solutions Library Guidance for Modern Insurance Data Lakes"
+    url: "https://aws.amazon.com/solutions/guidance/modern-insurance-data-lakes-on-aws"
+  - title: "InsuranceLake in the AWS Well-Architected Framework Financial Services Industry Lens"
+    url: "https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/insurance-lake.html"
+
 
 # Show navigation error report
 nav_error_report: true # default is false/nil.
@@ -114,12 +132,7 @@ last_edit_timestamp: true # show or hide edit time - page must have `last_modifi
 last_edit_time_format: "%b %e %Y at %I:%M %p" # uses ruby's time format: https://ruby-doc.org/stdlib-2.7.0/libdoc/time/rdoc/Time.html
 
 # Footer "Edit this page on GitHub" link text
-gh_edit_link: true # show or hide edit this page link
-gh_edit_link_text: "Edit this page on GitHub"
-gh_edit_repository: "https://github.com/just-the-docs/just-the-docs" # the github URL for your repo
-gh_edit_branch: "main" # the branch that your docs is served from
-# gh_edit_source: docs # the source that your files originate from
-gh_edit_view_mode: "tree" # "tree" or "edit" if you want the user to jump into the editor immediately
+gh_edit_link: false # show or hide edit this page link
 
 # Color scheme currently only supports "dark", "light"/nil (default), or a custom scheme that you define
 color_scheme: nil

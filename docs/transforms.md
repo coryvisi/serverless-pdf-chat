@@ -1,3 +1,7 @@
+---
+title: Transform Reference
+nav_order: 3
+---
 # InsuranceLake Collect-to-Cleanse Transform Reference
 
 The following reference guide describes each of the user-configured data transforms provided with the InsuranceLake ETL. The library of transforms can be extended by users of InsuranceLake using pySpark.

@@ -1,3 +1,7 @@
+---
+titie: Loading Data
+nav_order: 2
+---
 # Loading Data with InsuranceLake
 
 ## Contents

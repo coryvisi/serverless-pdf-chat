@@ -1,3 +1,7 @@
+---
+title: Schema Evolution
+nav_order: 7
+---
 # InsuranceLake Schema Evolution Documentation
 
 ## Contents

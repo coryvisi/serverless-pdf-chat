@@ -1,3 +1,7 @@
+---
+title: Schema Mapping
+nav_order: 4
+---
 # InsuranceLake Schema Mapping Documentation
 
 Schema mapping in InsuranceLake is configured by using a comma-delimited text file to describe the source and destination field names.

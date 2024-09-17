@@ -1,3 +1,7 @@
+---
+title: Data Quality
+nav_order: 6
+---
 # Data Quality with Glue Data Quality Reference
 
 ## Contents

@@ -1,3 +1,7 @@
+---
+title: File Formats and Input Specification
+nav_order: 5
+---
 # InsuranceLake File Formats and Input Specification
 
 ## Contents

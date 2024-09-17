@@ -1,7 +1,7 @@
 ---
 title: Full Deployment Guide
 category: developer-documentation
-order: 2
+nav_order: 9
 ---
 # InsuranceLake Full Deployment Guide
 
