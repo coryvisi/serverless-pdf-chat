@@ -3,5 +3,4 @@ description: Collect, Cleanse, and Consume all your insurance data in one secure
 remote_theme: just-the-docs/just-the-docs-template
 plugins:
 - jekyll-remote-theme
-- jekyll-default-layout
 url: https://coryvisi.github.io/serverless-pdf-chat
