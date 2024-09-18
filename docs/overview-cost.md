@@ -1,6 +1,5 @@
 ---
 title: Cost
-nav_order: 2
 parent: Overview
 ---
 ## Cost

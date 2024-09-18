@@ -1,6 +1,5 @@
 ---
 title: Sample Cost Table
-nav_order: 3
 parent: Cost
 ---
 ### Sample Cost Table
