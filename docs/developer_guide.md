@@ -1,7 +1,7 @@
 ---
 title: Developer Guide
 parent: Developer Documentation
-nav_order: 11
+nav_order: 1
 ---
 # InsuranceLake Developer Guide
 

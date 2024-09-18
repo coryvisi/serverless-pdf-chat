@@ -1,6 +1,6 @@
 ---
 title: SQL Usage
-nav_order: 9
+nav_order: 7
 parent: User Documentation
 ---
 # InsuranceLake Cleanse-to-Consume SQL Usage Documentation

@@ -1,7 +1,7 @@
 ---
 title: CDK Instructions
 parent: Developer Documentation
-nav_order: 13
+nav_order: 3
 ---
 # CDK Instructions
 

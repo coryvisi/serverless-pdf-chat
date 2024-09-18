@@ -1,5 +1,6 @@
 ---
 title: Quickstart
+nav_order: 2
 ---
 # InsuranceLake Quickstart Guide
 

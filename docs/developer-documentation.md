@@ -1,5 +1,5 @@
 ---
 title: Developer Documentation
-nav_order: 10
+nav_order: 6
 has_toc: true
 ---

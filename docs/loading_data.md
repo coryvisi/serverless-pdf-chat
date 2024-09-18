@@ -1,6 +1,6 @@
 ---
-titie: Loading Data
-nav_order: 3
+title: Loading Data
+nav_order: 1
 parent: User Documentation
 ---
 # Loading Data with InsuranceLake

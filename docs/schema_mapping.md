@@ -1,6 +1,6 @@
 ---
 title: Schema Mapping
-nav_order: 5
+nav_order: 3
 parent: User Documentation
 ---
 # InsuranceLake Schema Mapping Documentation

@@ -1,6 +1,6 @@
 ---
 title: Transform Reference
-nav_order: 4
+nav_order: 2
 parent: User Documentation
 ---
 # InsuranceLake Collect-to-Cleanse Transform Reference
