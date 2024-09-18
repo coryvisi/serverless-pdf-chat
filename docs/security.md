@@ -1,5 +1,5 @@
 ---
-title: InsuranceLake Security
+title: Security
 ---
 # InsuranceLake Security
 
