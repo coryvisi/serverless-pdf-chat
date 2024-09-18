@@ -3,14 +3,10 @@ title: Overview
 nav_order: 1
 ---
 # InsuranceLake
+{:no_toc}
 
-## Contents
-
-* [Overview](#overview)
-* [Additional resources](#additional-resources)
-* [Authors](#authors)
-* [Notices](#notices)
-* [License Summary](#license-summary)
+* TOC
+{:toc}
 
 ## Overview
 
