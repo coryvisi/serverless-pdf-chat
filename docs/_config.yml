@@ -97,12 +97,8 @@ nav_external_links:
     url: "https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure"
   - title: "ETL on GitHub"
     url: "https://github.com/aws-solutions-library-samples/aws-insurancelake-etl"
-  - title: "InsuranceLake Quickstart AWS Workshop"
+  - title: "Quickstart AWS Workshop"
     url: "https://catalog.workshops.aws/insurancelake"
-  - title: "AWS Solutions Library Guidance for Modern Insurance Data Lakes"
-    url: "https://aws.amazon.com/solutions/guidance/modern-insurance-data-lakes-on-aws"
-  - title: "InsuranceLake in the AWS Well-Architected Framework Financial Services Industry Lens"
-    url: "https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/insurance-lake.html"
 
 
 # Show navigation error report
