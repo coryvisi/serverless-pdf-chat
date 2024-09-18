@@ -3,10 +3,10 @@ title: Overview
 nav_order: 1
 ---
 # InsuranceLake
-{: no_toc }
+{:.no_toc}
 
 ## Contents
-{: no_toc }
+{:.no_toc}
 
 * TOC
 {:toc}
