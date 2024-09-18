@@ -1,6 +1,7 @@
 ---
 title: Deployment Validation
 parent: Quickstart
+nav_order: 1
 ---
 # InsuranceLake Deployment Validation
 

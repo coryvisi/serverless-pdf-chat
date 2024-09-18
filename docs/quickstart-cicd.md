@@ -1,6 +1,7 @@
 ---
 title: Quickstart with CI/CD
 parent: Quickstart
+nav_order: 2
 ---
 # InsuranceLake Quickstart with CI/CD Guide
 
