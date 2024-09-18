@@ -1,6 +1,7 @@
 ---
 title: File Formats and Input Specification
-nav_order: 5
+nav_order: 6
+parent: User Documentation
 ---
 # InsuranceLake File Formats and Input Specification
 

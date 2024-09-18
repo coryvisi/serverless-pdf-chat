@@ -1,6 +1,7 @@
 ---
 title: Data Quality
-nav_order: 6
+nav_order: 7
+parent: User Documentation
 ---
 # Data Quality with Glue Data Quality Reference
 

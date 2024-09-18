@@ -1,6 +1,7 @@
 ---
 title: Schema Evolution
-nav_order: 7
+nav_order: 8
+parent: User Documentation
 ---
 # InsuranceLake Schema Evolution Documentation
 

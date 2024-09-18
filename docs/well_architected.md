@@ -1,6 +1,7 @@
 ---
 title: Well Architected Pillars
-nav_order: 11
+parent: Developer Documentation
+nav_order: 14
 ---
 # InsuranceLake Well Architected Pillars
 

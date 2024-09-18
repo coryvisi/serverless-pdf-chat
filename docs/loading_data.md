@@ -1,6 +1,7 @@
 ---
 titie: Loading Data
-nav_order: 2
+nav_order: 3
+parent: User Documentation
 ---
 # Loading Data with InsuranceLake
 
