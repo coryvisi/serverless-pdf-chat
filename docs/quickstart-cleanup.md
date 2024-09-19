@@ -22,7 +22,8 @@ layout: post
 
    You can also manually empty all six InsuranceLake S3 buckets (cleanse, collect, consume, etl-scripts, glue_temp, access-logs) before cleaning up the stacks (below).
 
-   **Important:** If you want to retain Glue Data Catalog entries, logs, and S3 bucket contents, **do not run the script above**. Follow the instructions below to remove all stack-created resources except the S3 buckets (which will fail due to them containing objects). The buckets follow the defined retention policy in [s3_bucket_zones_stack.py](https://github.com/aws-samples/aws-insurancelake-infrastructure/blob/main/lib/s3_bucket_zones_stack.py#L45).
+   {: .important }
+   If you want to retain Glue Data Catalog entries, logs, and S3 bucket contents, **do not run the script above**. Follow the instructions below to remove all stack-created resources except the S3 buckets (which will fail due to them containing objects). The buckets follow the defined retention policy in [s3_bucket_zones_stack.py](https://github.com/aws-samples/aws-insurancelake-infrastructure/blob/main/lib/s3_bucket_zones_stack.py#L45).
 
 ## Clean-up ETL Stacks
 
@@ -32,7 +33,8 @@ layout: post
    Are you sure you want to delete: Test-InsuranceLakeEtlPipeline, Prod-InsuranceLakeEtlPipeline, Dev-InsuranceLakeEtlPipeline (y/n)?
    ```
 
-   **Note:** This operation deletes the pipeline stacks only in the central deployment account
+   {: .note }
+   This operation deletes the infrastructure pipeline stacks only in the central deployment account
 
 1. To delete stacks in **development** account, log onto Dev account, go to AWS CloudFormation console and delete the following stacks in the order listed:
 
@@ -65,7 +67,8 @@ layout: post
    Are you sure you want to delete: Test-InsuranceLakeInfrastructurePipeline, Prod-InsuranceLakeInfrastructurePipeline, Dev-InsuranceLakeInfrastructurePipeline (y/n)?
    ```
 
-   Note: This operation deletes the pipeline stacks only in the central deployment account
+   {: .note }
+   This operation deletes the ETL pipeline stacks only in the central deployment account
 
 1. To delete stacks in **development** account, log onto the Dev account, go to AWS CloudFormation console and delete the following stacks:
 
