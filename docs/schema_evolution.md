@@ -4,6 +4,13 @@ nav_order: 6
 parent: User Documentation
 ---
 # InsuranceLake Schema Evolution Documentation
+{:.no_toc}
+
+## ToC
+{:.no_toc}
+
+* TOC
+{:toc}
 
 ## Contents
 

@@ -1,6 +1,7 @@
 ---
 title: Architecture
 nav_order: 3
+has_toc: false
 ---
 # InsuranceLake Architecture
 
