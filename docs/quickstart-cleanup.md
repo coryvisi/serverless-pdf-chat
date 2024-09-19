@@ -2,6 +2,7 @@
 title: Cleanup
 parent: Quickstart
 nav_order: 3
+layout: post
 ---
 # Clean-up Instructions
 

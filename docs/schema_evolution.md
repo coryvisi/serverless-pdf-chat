@@ -6,23 +6,11 @@ parent: User Documentation
 # InsuranceLake Schema Evolution Documentation
 {:.no_toc}
 
-## ToC
+## Contents
 {:.no_toc}
 
 * TOC
 {:toc}
-
-## Contents
-
-* [Schema Change Setting](#schema-change-setting)
-    * [Evolve Setting Data Type Change Details](#evolve-setting-data-type-change-details)
-* [Cleanse Layer](#cleanse-layer)
-* [Consume Layer](#consume-layer)
-* [Parquet/Hadoop](#parquethadoop)
-	* [Spark SQL](#spark-sql)
-	* [Athena SQL](#athena-sql)
-* [Apache Iceberg](#apache-iceberg)
-
 
 ## Overview
 
