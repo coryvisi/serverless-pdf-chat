@@ -69,6 +69,9 @@ mermaid:
   # path: "/assets/js/mermaid.min.js"
   # Note: copy both `mermaid.esm.min.mjs` (v10+) or `mermaid.min.js` (<v10) and the associated `.map` file from the specified version of `mermaid/dist` to `/assets/js/`.
 
+# Favicon path
+favicon_ico: aws.png
+
 # Enable or disable heading anchors
 heading_anchors: true
 
@@ -121,7 +124,7 @@ last_edit_time_format: "%b %e %Y at %I:%M %p" # uses ruby's time format: https:/
 gh_edit_link: false # show or hide edit this page link
 
 # Color scheme currently only supports "dark", "light"/nil (default), or a custom scheme that you define
-color_scheme: nil
+color_scheme: wider
 
 callouts_level: quiet # or loud
 callouts:
