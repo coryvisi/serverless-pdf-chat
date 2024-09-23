@@ -2,6 +2,7 @@
 title: SQL Usage
 nav_order: 7
 parent: User Documentation
+last_modified_date: 2024-09-23
 ---
 # InsuranceLake Cleanse-to-Consume SQL Usage Documentation
 

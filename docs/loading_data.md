@@ -2,6 +2,7 @@
 title: Loading Data
 nav_order: 1
 parent: User Documentation
+last_modified_date: 2024-09-23
 ---
 # Loading Data with InsuranceLake
 

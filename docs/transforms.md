@@ -2,6 +2,7 @@
 title: Transform Reference
 nav_order: 2
 parent: User Documentation
+last_modified_date: 2024-09-23
 ---
 # InsuranceLake Collect-to-Cleanse Transform Reference
 

@@ -3,6 +3,7 @@ title: Quickstart
 nav_order: 2
 has_toc: false
 layout: about
+last_modified_date: 2024-09-23
 ---
 # InsuranceLake Quickstart Guide
 

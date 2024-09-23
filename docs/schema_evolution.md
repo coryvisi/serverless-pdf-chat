@@ -2,6 +2,7 @@
 title: Schema Evolution
 nav_order: 6
 parent: User Documentation
+last_modified_date: 2024-09-23
 ---
 # InsuranceLake Schema Evolution Documentation
 {:.no_toc}

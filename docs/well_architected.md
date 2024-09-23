@@ -1,6 +1,7 @@
 ---
 title: Well Architected Pillars
 parent: Architecture
+last_modified_date: 2024-09-23
 ---
 # InsuranceLake Well Architected Pillars
 

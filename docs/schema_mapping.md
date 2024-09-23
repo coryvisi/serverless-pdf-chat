@@ -2,6 +2,7 @@
 title: Schema Mapping
 nav_order: 3
 parent: User Documentation
+last_modified_date: 2024-09-23
 ---
 # InsuranceLake Schema Mapping Documentation
 
