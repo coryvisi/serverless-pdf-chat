@@ -16,7 +16,7 @@ This section describes each of the user-configured data transforms provided with
 {:toc}
 
 
-## Transformation Reference
+## Transformation Reference Table
 
 |Formatting	|Description
 |---	|---
@@ -719,7 +719,7 @@ Convert string column containing XML data to a structured or nested data type co
 
 - Similar to XML input file format support, this transform uses the [Databricks Spark-XML driver](https://github.com/databricks/spark-xml) for full XML parsing functionality through Apache Spark DataFrames. Refer to the [XML section](./file_formats.md#xml-driver-installation) of the File Formats and Input Specification Documentation for instructions on obtaining and installing the Spark-XML driver.
 
-> {: .important }
+{: .important }
 > This transform will not work without installing the Spark-XML driver. If you attempt to run this transform without installing the driver properly, you will see the following error:
 > ```log
 > TypeError: 'JavaPackage' object is not callable
