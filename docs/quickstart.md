@@ -20,39 +20,40 @@ If you'd like to get started quickly transforming some sample raw insurance data
 
 ### Python/CDK Basics
 
-1. Open the AWS Console and navigate to [AWS Cloud9](https://console.aws.amazon.com/cloud9control/home)
-1. Select the region to create the Cloud9 environment (should be the same region as the stack; us-east-2 by default)
-1. Select Create environment
-1. Enter an environment name, for example, InsuranceLakeDemo
-1. Select the t3.small instance size (CDK deployment requires more than 1 GB RAM)
-1. Leave the Platform selected as Amazon Linux 2023
-1. Adjust the timeout to your preference
-1. Click Create
-1. Open the environment you created and wait until it is available for use
-1. Clone the repositories
+1. Open the AWS Console in the `us-east-2 (Ohio)` Region.
+    {: .note }
+    InsuranceLake uses `us-east-2` by default. To change the Region, refer to the [Quickstart with CI/CD](#quickstart-with-cicd).
+1. Select AWS `CloudShell` at the bottom of the page and wait for a few seconds until it is available for use.
+1. Ensure you are using the latest version of the AWS Command Line Interface (CLI) and CDK.
+    ```
+    sudo npm install -g aws-lib aws-cdk
+    ```
+1. Clone the repositories.
     ```bash
     git clone https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure.git
     git clone https://github.com/aws-solutions-library-samples/aws-insurancelake-etl.git
     ```
-1. Use a terminal or command prompt and change the working directory to the location of the _infrastructure_ code
+1. Use a terminal or command prompt and change the working directory to the location of the _infrastructure_ code.
     ```bash
     cd aws-insurancelake-infrastructure
     ```
-1. Create a Python virtual environment
+1. Create a Python virtual environment.
+    {: .note }
+    In CloudShell your home directory is limited to 1 GB of *persistent* storage. To ensure we have enough storage to download and install the required Python packages, you will use CloudShell's *temporary* storage, located in `/tmp`, which has a larger capacity.
     ```bash
-    python3 -m venv .venv
+    python3 -m venv /tmp/.venv
     ```
-1. Activate the virtual environment
+1. Activate the virtual environment.
     ```bash
-    source .venv/bin/activate
+    source /tmp/.venv/bin/activate
     ```
-1. Install required Python libraries
-    - NOTE: You may see a warning stating that a newer version is available; it is safe to ignore this for the Quickstart
+1. Install required Python libraries.
+    {: .note }
+    You may see a warning stating that a newer version is available; it is safe to ignore this for the Quickstart.
     ```bash
     pip install -r requirements.txt
     ```
-1. Bootstrap CDK in your AWS account
-    - By default the solution will deploy resources to the `us-east-2` region
+1. Bootstrap CDK in your AWS account.
     ```bash
     cdk bootstrap
     ```
