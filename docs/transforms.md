@@ -9,11 +9,14 @@ last_modified_date: 2024-09-23
 
 This section describes each of the user-configured data transforms provided with the InsuranceLake ETL. The library of transforms can be extended by users of InsuranceLake using pySpark.
 
-## Contents
-{: .no_toc }
-
-* TOC
+<details markdown="block">
+  <summary>
+    Contents
+  </summary>
+  {: .text-delta }
+1. TOC
 {:toc}
+</details>
 
 
 ## Transformation Reference
