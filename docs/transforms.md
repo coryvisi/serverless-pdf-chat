@@ -13,7 +13,8 @@ This section describes each of the user-configured data transforms provided with
 {: .no_toc }
 
 * TOC
-{ :toc }
+{:toc}
+
 
 ## Transformation Reference
 
