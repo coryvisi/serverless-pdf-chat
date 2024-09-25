@@ -5,8 +5,16 @@ parent: User Documentation
 last_modified_date: 2024-09-23
 ---
 # InsuranceLake Collect-to-Cleanse Transform Reference
+{: .no_toc }
 
 This section describes each of the user-configured data transforms provided with the InsuranceLake ETL. The library of transforms can be extended by users of InsuranceLake using pySpark.
+
+## Contents
+{: .no_toc }
+
+{: .toc }
+
+## Transformation Reference
 
 |Formatting	|Description
 |---	|---
@@ -78,7 +86,7 @@ This section describes each of the user-configured data transforms provided with
 Transform types can be specified more than once in the transform specification by using an optional unique suffix, in the form of `:` following by a string. The string can be any number or identifier that is meaningful to the data pipeline designer. The suffix does not determine the order of exection; the transforms are executed in the order they are defined in the transform specification.
 
 {: .important }
-InsuranceLake-provided transforms are optimized to run in a single group using Apache Spark's `withColumns` and `select` DataFrame methods. Specifying multiple transform types will limit this optimization and should only be used when strictly necessary for the workflow. Read more about optimizing workflow performance when running a large number of transforms in [The hidden cost of Spark withColumn](https://medium.com/@manuzhang/the-hidden-cost-of-spark-withcolumn-8ffea517c015){:target="_blank"}.
+InsuranceLake-provided transforms are optimized to run in a single group using Apache Spark's `withColumns` and `select` DataFrame methods. Specifying multiple transform types will limit this optimization and should only be used when strictly necessary for the workflow. Read more about optimizing workflow performance when running a large number of transforms in [The hidden cost of Spark withColumn](https://medium.com/@manuzhang/the-hidden-cost-of-spark-withcolumn-8ffea517c015).
 
 ```json
     "transform_spec": {
@@ -158,11 +166,11 @@ Convert specified fields to decimal (fixed precision), int, bigint, string, and 
 |Parameter    |Type    |Description
 |---	|---	|---
 |key    |required    |Name of the field to convert
-|value  |required    |Destination data type expresseed using the [Apache Spark simpleString](https://spark.apache.org/docs/3.3.0/api/python/_modules/pyspark/sql/types.html) syntax
+|value  |required    |Destination data type expresseed using the [Spark simpleString](https://spark.apache.org/docs/3.3.0/api/python/_modules/pyspark/sql/types.html) syntax
 
 - Transform specification is a single JSON object containing a list of string value pairs for each field to convert.
 
-- Transform can be used to rename a nested field in place by redefining the struct data type, with new field names using Apache Spark's simpleString syntax for struct types, for example: `struct<name:type,name2:array<int>>`. See [all-transforms-example.json](../lib/glue_scripts/transformation-spec/all-transforms-example.json#L114) for a more complex example.
+- Transform can be used to rename a nested field in place by redefining the struct data type, with new field names using Spark's simpleString syntax for struct types, for example: `struct<name:type,name2:array<int>>`. See [all-transforms-example.json](../lib/glue_scripts/transformation-spec/all-transforms-example.json#L114) for a more complex example.
 
 ```json
 "changetype": {
@@ -182,10 +190,10 @@ Convert specified date fields to ISO format based on known input format.
 |Parameter    |Type    |Description
 |---	|---	|---
 |field    |required    |Name of destination field to hold the resulting date conversion, and source field if source not specified separately
-|format    |required    |Date format specified using [Apache Spark datetime patterns](https://spark.apache.org/docs/latest/sql-ref-datetime-pattern.html)
+|format    |required    |Date format specified using [Spark datetime patterns](https://spark.apache.org/docs/latest/sql-ref-datetime-pattern.html)
 |source    |optional    |Name of source field, defaults to destination field
 
-- With Apache Spark datetime patterns, `M` (uppercase) means **month** and `m` (lowercase) means **minutes**. Mixing these up will result  in date parse errors.
+- With Spark datetime patterns, `M` (uppercase) means **month** and `m` (lowercase) means **minutes**. Mixing these up will result  in date parse errors.
 
 - Use `dd` to indicate exactly two digit dates and `d` to indicate **either one or two** digits dates. This applies to all other symbols in the datetime pattern. Single character symbols are the most flexible.
 
@@ -246,7 +254,7 @@ Convert specified datetime fields to ISO format based on known input format.
 |Parameter    |Type    |Description
 |---	|---	|---
 |field    |required    |Name of destination field to hold the resulting timestamp conversion, and source field if source not specified separately
-|format    |required    |Timestamp format specified using [Apache Spark datetime patterns](https://spark.apache.org/docs/latest/sql-ref-datetime-pattern.html)
+|format    |required    |Timestamp format specified using [Spark datetime patterns](https://spark.apache.org/docs/latest/sql-ref-datetime-pattern.html)
 |source    |optional    |Name of source field, defaults to destination field
 
 ```json
@@ -292,9 +300,9 @@ Add or replace column based on a regular expression group match pattern.
 |pattern    |required    |Regular expression pattern with one match group following the [Java Pattern syntax](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html)
 |source    |optional    |Name of source field, defaults to destination field
 
-- We recommend building and testing your regular expressions using a visualization tool, such as [Regex Vis](https://regex-vis.com/).
+- We recommend building and testing your regular expressions using a visualization tool, such as [Regex Vis](https://regex-vis.com/){:target="_blank"}.
 - Only the first match group will be used per specification block. For multiple groups, use multiple specification blocks and shift the parentheses.
-- This transform uses the [Apache Spark regexp_extract function](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.regexp_extract.html).
+- This transform uses the [Spark regexp_extract function](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.regexp_extract.html).
 
 ```json
 "columnfromcolumn": [
@@ -321,8 +329,8 @@ Add or replace a column with regular expression substitution on an existing colu
 |replacement    |required   |String value to replace anything matched by the pattern
 |source    |optional    |Name of source field, defaults to destination field
 
-- We recommend building and testing your regular expressions using a visualization tool, such as [Regex Vis](https://regex-vis.com/).
-- This transform uses the [Apache Spark regexp_replace function](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.regexp_replace.html).
+- We recommend building and testing your regular expressions using a visualization tool, such as [Regex Vis](https://regex-vis.com/){:target="_blank"}.
+- This transform uses the [Spark regexp_replace function](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.regexp_replace.html).
 
 ```json
 "columnreplace": [
@@ -385,7 +393,7 @@ Add or replace a column using a regular expression group match pattern applied t
 |pattern    |required    |Regular expression pattern with one match group following the [Python regular expression syntax](https://docs.python.org/3/library/re.html)
 |required    |required    |true/false value indicating whether to halt the workflow if the pattern is not matched; if required is false and the pattern is not matched, a null value will be used
 
-- We recommend building and testing your regular expressions using a visualization tool, such as [Regex Vis](https://regex-vis.com/).
+- We recommend building and testing your regular expressions using a visualization tool, such as [Regex Vis](https://regex-vis.com/){:target="_blank"}.
 - Only the first match group will be used per specification block. For multiple groups, use multiple specification blocks, and shift the parenthesis.
 
 ```json
