@@ -1,7 +1,7 @@
 ---
 title: Data Quality
-nav_order: 5
 parent: User Documentation
+nav_order: 5
 last_modified_date: 2024-09-23
 ---
 # Data Quality with Glue Data Quality Reference

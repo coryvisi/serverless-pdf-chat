@@ -1,7 +1,7 @@
 ---
 title: Schema Evolution
-nav_order: 6
 parent: User Documentation
+nav_order: 6
 last_modified_date: 2024-09-23
 ---
 # InsuranceLake Schema Evolution Documentation

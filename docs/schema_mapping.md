@@ -1,7 +1,7 @@
 ---
 title: Schema Mapping
-nav_order: 3
 parent: User Documentation
+nav_order: 3
 last_modified_date: 2024-09-23
 ---
 # InsuranceLake Schema Mapping Documentation

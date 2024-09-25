@@ -1,7 +1,8 @@
 ---
 title: Transform Reference
-nav_order: 2
 parent: User Documentation
+nav_order: 2
+back_to_top: true
 last_modified_date: 2024-09-23
 ---
 # InsuranceLake Collect-to-Cleanse Transform Reference
@@ -727,6 +728,7 @@ Convert string column containing JSON data to a structured or nested data type c
 ```
 
 ### xmlstructured
+{: .no_toc }
 Convert string column containing XML data to a structured or nested data type column.
 
 |Parameter    |Type    |Description
