@@ -24,6 +24,7 @@ If you'd like to get started quickly transforming some sample raw insurance data
 
     {: .note }
     InsuranceLake uses `us-east-2` by default. To change the Region, refer to the [Quickstart with CI/CD](#quickstart-with-cicd).
+
 1. Select AWS `CloudShell` at the bottom of the page and wait for a few seconds until it is available for use.
 1. Ensure you are using the latest version of the AWS Command Line Interface (CLI) and CDK.
     ```
@@ -42,6 +43,7 @@ If you'd like to get started quickly transforming some sample raw insurance data
 
     {: .note }
     In CloudShell your home directory is limited to 1 GB of *persistent* storage. To ensure we have enough storage to download and install the required Python packages, you will use CloudShell's *temporary* storage, located in `/tmp`, which has a larger capacity.
+
     ```bash
     python3 -m venv /tmp/.venv
     ```
@@ -53,6 +55,7 @@ If you'd like to get started quickly transforming some sample raw insurance data
 
     {: .note }
     You may see a warning stating that a newer version is available; it is safe to ignore this for the Quickstart.
+
     ```bash
     pip install -r requirements.txt
     ```
