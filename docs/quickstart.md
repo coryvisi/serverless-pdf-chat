@@ -21,6 +21,7 @@ If you'd like to get started quickly transforming some sample raw insurance data
 ### Python/CDK Basics
 
 1. Open the AWS Console in the `us-east-2 (Ohio)` Region.
+
     {: .note }
     InsuranceLake uses `us-east-2` by default. To change the Region, refer to the [Quickstart with CI/CD](#quickstart-with-cicd).
 1. Select AWS `CloudShell` at the bottom of the page and wait for a few seconds until it is available for use.
@@ -38,6 +39,7 @@ If you'd like to get started quickly transforming some sample raw insurance data
     cd aws-insurancelake-infrastructure
     ```
 1. Create a Python virtual environment.
+
     {: .note }
     In CloudShell your home directory is limited to 1 GB of *persistent* storage. To ensure we have enough storage to download and install the required Python packages, you will use CloudShell's *temporary* storage, located in `/tmp`, which has a larger capacity.
     ```bash
@@ -48,6 +50,7 @@ If you'd like to get started quickly transforming some sample raw insurance data
     source /tmp/.venv/bin/activate
     ```
 1. Install required Python libraries.
+
     {: .note }
     You may see a warning stating that a newer version is available; it is safe to ignore this for the Quickstart.
     ```bash
