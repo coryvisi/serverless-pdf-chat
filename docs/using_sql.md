@@ -70,7 +70,7 @@ The following are considerations and requirements for InsuranceLake's integratio
     > ```python
     > r'\s*CREATE TABLE\s+["`\']?([\w]+)["`\']?\s+AS(.*)'
     > ```
-    > [Test your Spark SQL using a regular expression visualization tool](https://regex-vis.com/?r=%5Cs*CREATE+TABLE%5Cs%2B%5B%22%60%5C%27%5D%3F%28%5B%5Cw%5D%2B%29%5B%22%60%5C%27%5D%3F%5Cs%2BAS%28.*%29).
+    > [Test your Spark SQL using a regular expression visualization tool](https://regex-vis.com/?r=%5Cs*CREATE+TABLE%5Cs%2B%5B%22%60%5C%27%5D%3F%28%5B%5Cw%5D%2B%29%5B%22%60%5C%27%5D%3F%5Cs%2BAS%28.*%29){:target="_blank"}.
 
 Example patterns using Spark SQL:
 * [Simplest Method to Populate Consume](#simplest-method-to-populate-consume)
