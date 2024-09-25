@@ -12,7 +12,8 @@ This section describes each of the user-configured data transforms provided with
 ## Contents
 {: .no_toc }
 
-{: toc }
+* TOC
+{ :toc }
 
 ## Transformation Reference
 
