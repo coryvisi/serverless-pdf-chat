@@ -64,11 +64,12 @@ The following are considerations and requirements for InsuranceLake's integratio
 
 * The ETL supports the `CREATE TABLE` prefix to support overriding the default workflow tablename. See [Override Table Name](#override-table-name-example) for example Spark SQL.
 
-    * **Note:** The table name override implementation is based on the following Python regular expression to identify the alternate table name and may not support all variations of query syntax:
-
-        ```python
-        r'\s*CREATE TABLE\s+["`\']?([\w]+)["`\']?\s+AS(.*)'
-        ```
+    {: .note }
+    > The table name override implementation is based on the following Python regular expression to identify the alternate table name and may not support all variations of query syntax:
+    > 
+    > ```python
+    > r'\s*CREATE TABLE\s+["`\']?([\w]+)["`\']?\s+AS(.*)'
+    > ```
 
 Example patterns using Spark SQL:
 * [Simplest Method to Populate Consume](#simplest-method-to-populate-consume)
