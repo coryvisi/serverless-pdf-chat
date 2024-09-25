@@ -55,8 +55,8 @@ This section describes each of the user-configured data transforms provided with
 |---	|---
 |[jsonexpandarray](#jsonexpandarray)    |Expand array type columns from JSON files into multiple rows
 |[jsonexpandmap](#jsonexpandmap)    |Expand struct or map type columns from JSON files into multiple rows
-|[xmlstructured](#xmlstructured)    |Convert string column with XML data to structured column
 |[jsonstructured](#jsonstructured)    |Convert string column with JSON data to structured column
+|[xmlstructured](#xmlstructured)    |Convert string column with XML data to structured column
 
 |Miscellaneous Data Operations	|Description
 |---	|---
@@ -709,30 +709,6 @@ Convert a MapType or StructType column (typically created from loading JSON nest
 ]
 ```
 
-### xmlstructured
-{: .no_toc }
-Convert string column containing XML data to a structured or nested data type column.
-
-|Parameter    |Type    |Description
-|---	|---	|---
-|field    |required    |Name of string field to convert in place to structured data
-
-- Similar to XML input file format support, this transform uses the [Databricks Spark-XML driver](https://github.com/databricks/spark-xml) for full XML parsing functionality through Apache Spark DataFrames. Refer to the [XML section](./file_formats.md#xml-driver-installation) of the File Formats and Input Specification Documentation for instructions on obtaining and installing the Spark-XML driver.
-
-{: .important }
-> This transform will not work without installing the Spark-XML driver. If you attempt to run this transform without installing the driver properly, you will see the following error:
-> ```log
-> TypeError: 'JavaPackage' object is not callable
-> ```
-
-- This function uses [Spark's `from_xml` function](https://github.com/databricks/spark-xml?tab=readme-ov-file#parsing-nested-xml). At this time, it is not possible to specify options, but the transform can be extended to support this.
-
-```json
-"xml": [
-    "xmlfield"
-]
-```
-
 ### jsonstructured
 {: .no_toc }
 Convert string column containing JSON data to a structured or nested data type column.
@@ -747,6 +723,29 @@ Convert string column containing JSON data to a structured or nested data type c
 ```json
 "json": [
     "jsonfield"
+]
+```
+
+### xmlstructured
+Convert string column containing XML data to a structured or nested data type column.
+
+|Parameter    |Type    |Description
+|---	|---	|---
+|field    |required    |Name of string field to convert in place to structured data
+
+{: .important }
+> This transform will not work without installing the Spark-XML driver. If you attempt to run this transform without installing the driver properly, you will see the following error:
+> ```log
+> TypeError: 'JavaPackage' object is not callable
+> ```
+
+- Similar to XML input file format support, this transform uses the [Databricks Spark-XML driver](https://github.com/databricks/spark-xml) for full XML parsing functionality through Apache Spark DataFrames. Refer to the [XML section](./file_formats.md#xml-driver-installation) of the File Formats and Input Specification Documentation for instructions on obtaining and installing the Spark-XML driver.
+
+- This function uses [Spark's `from_xml` function](https://github.com/databricks/spark-xml?tab=readme-ov-file#parsing-nested-xml). At this time, it is not possible to specify options, but the transform can be extended to support this.
+
+```json
+"xml": [
+    "xmlfield"
 ]
 ```
 
