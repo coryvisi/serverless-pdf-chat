@@ -5,10 +5,10 @@ has_toc: false
 last_modified_date: 2024-09-23
 ---
 # InsuranceLake
-{:.no_toc}
+{: .no_toc }
 
 ## Contents
-{:.no_toc}
+{: .no_toc }
 
 * TOC
 {:toc}

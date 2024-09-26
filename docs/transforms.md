@@ -2,8 +2,7 @@
 title: Transform Reference
 parent: User Documentation
 nav_order: 2
-back_to_top: true
-last_modified_date: 2024-09-23
+last_modified_date: 2024-09-23 16:30
 ---
 # InsuranceLake Collect-to-Cleanse Transform Reference
 {: .no_toc }
@@ -15,7 +14,6 @@ This section describes each of the user-configured data transforms provided with
 
 * TOC
 {:toc}
-
 
 ## Transformation Reference Table
 
