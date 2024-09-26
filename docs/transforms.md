@@ -2,12 +2,12 @@
 title: Transform Reference
 parent: User Documentation
 nav_order: 2
-last_modified_date: 2024-09-23 16:30
+last_modified_date: 2024-09-26
 ---
 # InsuranceLake Collect-to-Cleanse Transform Reference
 {: .no_toc }
 
-This section describes each of the user-configured data transforms provided with the InsuranceLake ETL. The library of transforms can be extended by users of InsuranceLake using pySpark.
+This section describes each of the user-configured data transforms provided with the InsuranceLake ETL. The library of transforms can be extended by users of InsuranceLake using PySpark.
 
 ## Contents
 {: .no_toc }
@@ -19,10 +19,10 @@ This section describes each of the user-configured data transforms provided with
 
 |Formatting	|Description
 |---	|---
-|[currency](#currency)	|Convert specified numeric field with currency formatting to Decimal (fixed precision)
+|[currency](#currency)	|Convert specified numeric field with currency formatting to decimal (fixed precision)
 |[changetype](#changetype)	|Convert specified fields to decimal (fixed precision), int, bigint, string, and more
 |[date](#date)	|Convert specified date fields to International Organization for Standardization (ISO) format based on a known input format
-|[implieddecimal](#implieddecimal)	|Convert specified numeric fields to Decimal (fixed precision) type with implied decimal point support (in other words, the last two digits are to the right of decimal)
+|[implieddecimal](#implieddecimal)	|Convert specified numeric fields to decimal (fixed precision) type with implied decimal point support (in other words, the last two digits are to the right of decimal)
 |[timestamp](#timestamp)	|Convert specified datetime fields to ISO format based on a known input format
 |[titlecase](#titlecase)	|Convert specified string column in DataFrame to title or proper case
 
@@ -38,7 +38,7 @@ This section describes each of the user-configured data transforms provided with
 |---	|---
 |[hash](#hash)	|Hash specified column values using SHA256
 |[redact](#redact)	|Redact specified column values using supplied redaction string
-|[tokenize](#tokenize)	|Replace specified column values with hash and store original value in Amazon DynamoDB table
+|[tokenize](#tokenize)	|Replace specified column values with hash and store original value in DynamoDB table
 
 |Policy Data Operations	|Description
 |---	|---
@@ -70,7 +70,7 @@ This section describes each of the user-configured data transforms provided with
 
 - Transform configuration is specified in the `transform-spec` section of the workflow's JSON configuration file. The filename follows the convention of `<database name>-<table name>.json` and is stored in the `/etl/transformation-spec` folder in the `etl-scripts` bucket. When using AWS CDK for deployment, the contents of the `/lib/glue_scripts/lib/transformation-spec` directory will be automatically deployed to this location.
 
-- For an example of all transforms in one place, refer to the [all-transforms-example.json](../lib/glue_scripts/transformation-spec/all-transforms-example.json) in the `transformation-spec` directory of the repository.
+- For an example of all transforms in one place, refer to the [all-transforms-example.json](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/transformation-spec/all-transforms-example.json) in the `transformation-spec` directory of the repository.
 
 - The order that you enter the transforms into the JSON file is important and should be chosen deliberately. Each transform is executed in the order they are defined on the incoming dataset starting from the beginning of the transform_spec section of the file.
 
@@ -100,9 +100,9 @@ InsuranceLake-provided transforms are optimized to run in a single group using A
         ],
         "combinecolumns": [
             {
-				"field": "Program",
-				"format": "{}-{}",
-				"source_columns": [ "CoverageCode", "PolicyYear" ]
+                "field": "Program",
+                "format": "{}-{}",
+                "source_columns": [ "CoverageCode", "PolicyYear" ]
             }
         ],
         "lookup:2": [
@@ -117,7 +117,7 @@ InsuranceLake-provided transforms are optimized to run in a single group using A
 
 ## Behavior When There is No Transformation Specification
 
-When there is no transformation specification file or an empty transformation specification in the ETL Scripts Amazon S3 Bucket for the workflow, **the ETL will perform no transformations**. However, the ETL will save a **recommended** transformation specification file to the AWS Glue Temp bucket,  `<environment>-insurancelake-<account>-<region>-glue-temp` bucket, in the folder `/etl/collect_to_cleanse` following the naming convention `<database>-<table>.json`.
+When there is no transformation specification file or an empty transformation specification in the ETL Scripts S3 bucket for the workflow, **the ETL will perform no transformations**. However, the ETL will save a **recommended** transformation specification file to the AWS Glue Temp bucket, `<environment>-insurancelake-<account>-<region>-glue-temp`, in the folder `/etl/collect_to_cleanse` following the naming convention `<database>-<table>.json`.
 
 When this behavior occurs, you will see the following log message in the AWS Glue Job Output Logs:
 ```log
@@ -136,7 +136,7 @@ This recommended transformation specification file can be used as a starting poi
 
 ### currency
 {: .no_toc }
-Convert specified numeric field with currency formatting to Decimal (fixed precision).
+Convert specified numeric field with currency formatting to decimal (fixed precision).
 
 |Parameter    |Type    |Description
 |---	|---	|---
@@ -169,11 +169,11 @@ Convert specified fields to decimal (fixed precision), int, bigint, string, and 
 |Parameter    |Type    |Description
 |---	|---	|---
 |key    |required    |Name of the field to convert
-|value  |required    |Destination data type expresseed using the [Spark simpleString](https://spark.apache.org/docs/3.3.0/api/python/_modules/pyspark/sql/types.html) syntax
+|value  |required    |Destination data type expressed using the [Spark simpleString](https://spark.apache.org/docs/3.3.0/api/python/_modules/pyspark/sql/types.html) syntax
 
 - Transform specification is a single JSON object containing a list of string value pairs for each field to convert.
 
-- Transform can be used to rename a nested field in place by redefining the struct data type, with new field names using Spark's simpleString syntax for struct types, for example: `struct<name:type,name2:array<int>>`. See [all-transforms-example.json](../lib/glue_scripts/transformation-spec/all-transforms-example.json#L114) for a more complex example.
+- Transform can be used to rename a nested field in place by redefining the struct data type, with new field names using Spark's simpleString syntax for struct types, for example: `struct<name:type,name2:array<int>>`. See [all-transforms-example.json](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/transformation-spec/all-transforms-example.json#L139) for a more complex example.
 
 ```json
 "changetype": {
@@ -201,7 +201,7 @@ Convert specified date fields to ISO format based on known input format.
 
 - Use `dd` to indicate exactly two digit dates and `d` to indicate **either one or two** digits dates. This applies to all other symbols in the datetime pattern. Single character symbols are the most flexible.
 
-- An error similar to the following typically means that some or all of your dates are not formatted in the way the date pattern expects. Consider using [data quality rules](./data_quality.md#Configuration) to test your data.
+- An error similar to the following typically means that some or all of your dates are not formatted in the way the date pattern expects. Consider using [data quality rules](data_quality.md#configuration) to test your data.
     ```log
     You may get a different result due to the upgrading of Spark 3.0
     Fail to parse 'YYYY-M-d' in the new parser. You can set spark.sql.legacy.timeParserPolicy to LEGACY to restore the behavior before Spark 3.0, or set to CORRECTED and treat it as an invalid datetime string.
@@ -227,7 +227,7 @@ Convert specified date fields to ISO format based on known input format.
 
 ### implieddecimal
 {: .no_toc }
-Convert specified numeric fields to Decimal (fixed precision) type with implied decimal point support (in other words, last two digits are to the right of decimal).
+Convert specified numeric fields to decimal (fixed precision) type with implied decimal point support (in other words, last two digits are to the right of decimal).
 
 |Parameter    |Type    |Description
 |---	|---	|---
@@ -465,14 +465,14 @@ Redact or replace specified column values using supplied redaction string.
 
 ### tokenize
 {: .no_toc }
-Replace the specified column values with a SHA256 hash and store original values in an Amazon DynamoDB table.
+Replace the specified column values with a SHA256 hash and store original values in a DynamoDB table.
 
 |Parameter    |Type    |Description
 |---	|---	|---
-|field    |required    |Name of field to convert in place to SHA256 hash; original value will be stored in an Amazon DynamoDB table
+|field    |required    |Name of field to convert in place to SHA256 hash; original value will be stored in a DynamoDB table
 
 - Transform specification is a simple list of fields of type string to convert.
-- The `<environment>-insurancelake-etl-hash-values` Amazon DynamoDB table will be used for storage of all tokens for all fields and data sets. Since the hashing is deterministic, each value will only be stored once, regardless of how many columns contain the value.
+- The `<environment>-insurancelake-etl-hash-values` DynamoDB table will be used for storage of all tokens for all fields and data sets. Since the hashing is deterministic, each value will only be stored once, regardless of how many columns contain the value.
 - If the field does not exist, the workflow will be halted to prevent unexpected schema changes from exposing sensitive data.
 
 ```json
@@ -718,7 +718,6 @@ Convert string column containing JSON data to a structured or nested data type c
 |---	|---	|---
 |field    |required    |Name of string field to convert in place to structured data
 
-
 ```json
 "json": [
     "jsonfield"
@@ -755,15 +754,15 @@ Convert string column containing XML data to a structured or nested data type co
 
 ### lookup
 {: .no_toc }
-Replace or add specified column values with values looked up from an Amazon DynamoDB table using a single value lookup key.
+Replace or add specified column values with values looked up from a DynamoDB table using a single value lookup key.
 
 |Parameter    |Type    |Description    |
 |---	|---	|---	|
 |field  |required   |Name of destination field to hold looked up values, and source field if source is not specified separately    |
 |source |optional   |Source field with values matching the lookup data; defaults to destination field
-|lookup    |required   |Name of lookup set of data which is used to match the `column_name` attribute in the Amazon DynamoDB table
+|lookup    |required   |Name of lookup set of data which is used to match the `column_name` attribute in the DynamoDB table
 |nomatch  |optional   |Value to use for lookups that have no match; defaults to null; **must be the same data type as the looked up data.**
-|source_system  |optional   |Value to use for the `source_system` attribute in the Amazon DynamoDB table; defaults to the database name or ([first level folder structure name in the Collect bucket](loading_data.md#bucket-layout)). Use this override parameter to share lookups across different databases.
+|source_system  |optional   |Value to use for the `source_system` attribute in the DynamoDB table; defaults to the database name or ([first level folder structure name in the Collect bucket](loading_data.md#bucket-layout)). Use this override parameter to share lookups across different databases.
 
 ```json
 "lookup": [
@@ -781,9 +780,9 @@ Replace or add specified column values with values looked up from an Amazon Dyna
 ]
 ```
 
-- If your lookup data exceeds the [Amazon DynamoDB item size limit](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html#limits-items), consider using the [multilookup](#multilookup) transform instead, which will split the lookup data into multiple items.
+- If your lookup data exceeds the [DynamoDB item size limit](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html#limits-items), consider using the [multilookup](#multilookup) transform instead, which will split the lookup data into multiple items.
 
-- The provided `resources/load_dynamodb_lookup_table.py` script can be used to load prepared JSON data into the Amazon DynamoDB table:
+- The provided `resources/load_dynamodb_lookup_table.py` script can be used to load prepared JSON data into the DynamoDB table:
 
     - Script parameters:
         |Parameter  |Type   |Description    |
@@ -833,12 +832,12 @@ Add columns looked up from an external table using multiple conditions, returnin
 ]
 ```
 
-- The `match_columns` names only refer to the incoming dataset. The column names in your lookup data (in Amazon DynamoDB) do not matter, because all the lookup column values are stored in a concatenated string in the `lookup_item` sort key.
+- The `match_columns` names only refer to the incoming dataset. The column names in your lookup data (in DynamoDB) do not matter, because all the lookup column values are stored in a concatenated string in the `lookup_item` sort key.
 
 {: .important }
 If a column specified in `return_attributes` already exists, a duplicate column will be created, which will raise an error when saving to Apache Parquet format. Take care to map your incoming dataset correctly so that it has unique column names after performing the multilookup transform. For example, suppose your incoming data has a `lineofbusiness` column, but it is composed of bespoke values that you want to normalize. A best practice would be to use the schema map to rename `lineofbusiness` to `originallineofbusiness` so the incoming data is preserved, and use the multilookup to return a new (normalized) `lineofbusiness` attribute value.
 
-- The provided `resources/load_dynamodb_multilookup_table.py` script can be used to load prepared CSV data into the Amazon DynamoDB table:
+- The provided `resources/load_dynamodb_multilookup_table.py` script can be used to load prepared CSV data into the DynamoDB table:
 
     - Script parameters:
         |Parameter  |Type   |Description    |
@@ -893,7 +892,7 @@ Filter out rows based on standard SQL WHERE statement.
 |condition    |required    |String filter condition using [Apache Spark WHERE clause syntax](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-where.html); **rows that match will remain in the data set**
 |description    |optional    |This parameter will be ignored, but we recommend using it to document the purpose of each filter condition
 
-- Use only when certain rows can be systematically and confidently discarded. Examples of usage include removing blank rows, removing a totals rows, or removing subtotal rows. If review of filtered data is desired, consider using [data quality quarantine rules](data_quality.md). An example of both options can be found in the [Corrupt Data section of the Loading Data with InsurnaceLake Documentation](loading_data.md#corrupt-data).
+- Use only when certain rows can be systematically and confidently discarded. Examples of usage include removing blank rows, removing a totals rows, or removing subtotal rows. If review of filtered data is desired, consider using [data quality quarantine rules](data_quality.md#quarantine). An example of both options can be found in the [Corrupt Data section of the Loading Data with InsurnaceLake Documentation](loading_data.md#corrupt-data).
 
 ```json
 "filterrows": [
