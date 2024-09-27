@@ -110,7 +110,7 @@ If you'd like to get started quickly transforming some sample raw insurance data
 
 ### Deploy the Application
 
-{:style="counter-reset:none"}
+<ol style="counter-reset:none">
 1. Ensure you are still in the `aws-insurancelake-infrastructure` directory.
 1. Deploy infrastructure resources in the development environment (one stack).
     ```bash
@@ -133,10 +133,11 @@ If you'd like to get started quickly transforming some sample raw insurance data
     - Wait approximately 3 minutes for deployment to finish.
 1. Review and accept IAM credential creation for the Step Functions stack.
     - Wait approximately 7 minutes for deployment of Step Functions and Athena Helper stacks to finish.
+</ol>
 
 ### Try out the ETL Process
 
-{:style="counter-reset:none"}
+<ol style="counter-reset:none">
 1. Populate the DynamoDB lookup table with sample lookup data.
     ```bash
     resources/load_dynamodb_lookup_table.py SyntheticGeneralData dev-insurancelake-etl-value-lookup resources/syntheticgeneral_lookup_data.json
@@ -159,6 +160,7 @@ If you'd like to get started quickly transforming some sample raw insurance data
     ```sql
     select * from syntheticgeneraldata_consume.policydata limit 100
     ```
+</ol>
 
 ### Next Steps
 
