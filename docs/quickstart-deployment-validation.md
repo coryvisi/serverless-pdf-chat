@@ -1,8 +1,7 @@
 ---
 title: Deployment Validation
-parent: Quickstart
-nav_order: 1
-layout: home
+parent: Getting Started
+nav_order: 2
 last_modified_date: 2024-09-23
 ---
 # InsuranceLake Deployment Validation

@@ -1,225 +1,338 @@
-# Serverless document chat application
+<!--
+  Title: AWS InsuranceLake
+  Description: Serverless modern data lake solution and reference architecture fit for the insurance industry built on AWS
+  Author: cvisi@amazon.com
+  -->
+# InsuranceLake ETL
 
-This sample application allows you to ask natural language questions of any PDF document you upload. It combines the text generation and analysis capabilities of an LLM with a vector search of the document content. The solution uses serverless services such as [Amazon Bedrock](https://aws.amazon.com/bedrock/) to access foundational models, [AWS Lambda](https://aws.amazon.com/lambda/) to run [LangChain](https://github.com/hwchase17/langchain), and [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) for conversational memory.
+## Overview
 
-See the [accompanying blog post on the AWS Serverless Blog](https://aws.amazon.com/blogs/compute/building-a-serverless-document-chat-with-aws-lambda-and-amazon-bedrock/) for a detailed description and follow the deployment instructions below to get started.
+This solution guidance helps you deploy extract, transform, load (ETL) processes and data storage resources to create InsuranceLake. It uses Amazon Simple Storage Service (Amazon S3) buckets for storage, [AWS Glue](https://docs.aws.amazon.com/glue/) for data transformation, and [AWS Cloud Development Kit (CDK) Pipelines](https://docs.aws.amazon.com/cdk/latest/guide/cdk_pipeline.html). The solution is originally based on the AWS blog [Deploy data lake ETL jobs using CDK Pipelines](https://aws.amazon.com/blogs/devops/deploying-data-lake-etl-jobs-using-cdk-pipelines/).
 
-<p float="left">
-  <img src="preview-1.png" width="49%" />
-  <img src="preview-2.png" width="49%" />
-</p>
+The best way to learn about InsuranceLake is to follow the [Quickstart guide](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/quickstart/) and try it out.
 
-> **Warning**
-> This application is not ready for production use. It was written for demonstration and educational purposes. Review the [Security](#security) section of this README and consult with your security team before deploying this stack. No warranty is implied in this example.
+The InsuranceLake solution is comprised of two codebases: [Infrastructure](https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure) and [ETL](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl).
 
-> **Note**
-> This architecture creates resources that have costs associated with them. Please see the [AWS Pricing](https://aws.amazon.com/pricing/) page for details and make sure to understand the costs before deploying this stack.
+Specifically, this solution helps you to:
 
-## Key features
+* Deploy a "3 Cs" (Collect, Cleanse, Consume) architecture InsuranceLake.
+* Deploy ETL jobs needed to make common insurance industry data souces available in a data lake.
+* Use pySpark Glue jobs and supporting resoures to perform data transforms in a modular approach.
+* Build and replicate the application in multiple environments quickly.
+* Deploy ETL jobs from a central deployment account to multiple AWS environments such as Dev, Test, and Prod.
+* Leverage the benefit of self-mutating feature of CDK Pipelines; specifically, the pipeline itself is infrastructure as code and can be changed as part of the deployment.
+* Increase the speed of prototyping, testing, and deployment of new ETL jobs.
 
-- [Amazon Bedrock](https://aws.amazon.com/de/bedrock/) for serverless embedding and inference
-- [LangChain](https://github.com/hwchase17/langchain) to orchestrate a Q&A LLM chain
-- [FAISS](https://github.com/facebookresearch/faiss) vector store
-- [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) for serverless conversational memory
-- [AWS Lambda](https://aws.amazon.com/lambda/) for serverless compute
-- Frontend built in [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [TailwindCSS](https://tailwindcss.com/), and [Vite](https://vitejs.dev/).
-- Run locally or deploy to [AWS Amplify Hosting](https://aws.amazon.com/amplify/hosting/)
-- [Amazon Cognito](https://aws.amazon.com/cognito/) for authentication
+![InsuranceLake High Level Architecture](https://raw.githubusercontent.com/aws-solutions-library-samples/aws-insurancelake-etl/main/docs/insurancelake-highlevel-architecture.png)
 
-## How the application works
+## Contents
 
-![Serverless PDF Chat architecture](architecture.png "Serverless PDF Chat architecture")
+* [Cost](#cost)
+    * [Sample Cost Table](#sample-cost-table)
+* [Quickstart](#quickstart)
+    * [Python/CDK Basics](#pythoncdk-basics)
+    * [Deploy the Application](#deploy-the-application)
+    * [Try out the ETL Process](#try-out-the-etl-process)
+    * [Next Steps](#next-steps)
+* [Deployment Validation](#deployment-validation)
+* [Cleanup](#cleanup)
+* [Architecture](#architecture)
+    * [Collect, Cleanse, Consume](#collect-cleanse-consume)
+    * [ETL](#etl)
+    * [Well Architected Pillars](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/well_architected/)
+* [Security](#security)
+    * [Infrastructure Code](#infrastructure-code)
+    * [Application Code](#application-code)
+* [Online Documentation](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/)
+* [Additional resources](#additional-resources)
+* [Authors](#authors)
+* [License Summary](#license-summary)
 
-1. A user uploads a PDF document into an [Amazon S3](https://aws.amazon.com/s3/) bucket through a static web application frontend.
-1. This upload triggers a metadata extraction and document embedding process. The process converts the text in the document into vectors. The vectors are loaded into a vector index and stored in S3 for later use.
-1. When a user chats with a PDF document and sends a prompt to the backend, a Lambda function retrieves the index from S3 and searches for information related to the prompt.
-1. A LLM then uses the results of this vector search, previous messages in the conversation, and its general-purpose capabilities to formulate a response to the user.
+## Cost
 
-## Deployment instructions
+This solution uses the following services: [Amazon S3](https://aws.amazon.com/s3/pricing/), [AWS Glue](https://aws.amazon.com/glue/pricing/), [AWS Step Functions](https://aws.amazon.com/step-functions/pricing/), [Amazon DynamoDB](https://aws.amazon.com/dynamodb/pricing/), [AWS Lambda](https://aws.amazon.com/lambda/pricing/), [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), [Amazon Athena](https://aws.amazon.com/athena/pricing/), and [AWS CodePipeline](https://aws.amazon.com/codepipeline/pricing/) for continuous integration and continuous deployment (CI/CD) installation only.
 
-### Prerequisites
+An estimated cost for following the [Quickstart](#quickstart) and [Quickstart with CI/CD](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/quickstart_cicd/) instructions, assuming a total of 8 Glue DPU hours and cleaning all resources when finished, **your cost will not be higher than $2**. This cost could be less as some services are included in the [Free Tier](https://aws.amazon.com/free/).
 
-- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
-- [Python](https://www.python.org/) 3.11 or greater
+_We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this solution._
 
-### Cloning the repository
+### Sample Cost Table
 
-Clone this repository:
+The following table provides a sample cost breakdown for deploying this Guidance with the default parameters in the US East (Ohio) Region for one month with pricing as of _9 July 2024_.
 
-```bash
-git clone git@github.com:aws-samples/serverless-pdf-chat.git
-```
+|AWS service    |Dimensions |Cost [USD]
+|---    |---    |---
+|AWS Glue   |per DPU-Hour for each Apache Spark or Spark Streaming job, billed per second with a 1-minute minimum   |$0.44
+|Amazon S3  |per GB of storage used, Frequent Access Tier, first 50 TB per month<br>PUT, COPY, POST, LIST requests (per 1,000 requests)<br>GET, SELECT, and all other requests (per 1,000 requests)   |$0.023<br>$0.005<br>$0.0004
+|Amazon Athena  |per TB of data scanned   |$5.00
+|Amazon DynamoDB    |per million Write Request Units (WRU)<br>per million Read Request Units (RRU)  |$1.25<br>$0.25
 
-### Amazon Bedrock setup
+## Quickstart
 
-This application can be used with a variety of LLMs via Amazon Bedrock. See [Supported models in Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html#models-supported) for a complete list.
+If you'd like to get started quickly transforming some sample raw insurance data and running SQL on the resulting dataset, **and without worrying about CI/CD**, follow the steps in this section.
 
-By default, this application uses **Titan Embeddings G1 - Text** to generate embeddings and **Anthropic's Claude v2** model for responses.
+### Python/CDK Basics
 
-> **Important**
-> Before you can use these models with this application, **you must request access in the Amazon Bedrock console**. See the [Model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) section of the Bedrock User Guide for detailed instructions.
-> By default, this application is configured to use Amazon Bedrock in the `us-east-1` Region, make sure you request model access in that Region (this does not have to be the same Region that you deploy this stack to).
+1. Open the AWS Console in the `us-east-2 (Ohio)` Region.
+    - NOTE: InsuranceLake uses `us-east-2` by default. To change the Region, refer to the [Quickstart with CI/CD](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/quickstart_cicd/).
+1. Select `CloudShell` at the bottom of the page and wait for a few seconds until it is available for use.
+1. Ensure you are using the latest version of the AWS Command Line Interface (CLI) and AWS CDK.
+    ```
+    sudo npm install -g aws-lib aws-cdk
+    ```
+1. Clone the repositories.
+    ```bash
+    git clone https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure.git
+    git clone https://github.com/aws-solutions-library-samples/aws-insurancelake-etl.git
+    ```
+1. Change the working directory to the location of the _infrastructure_ code.
+    ```bash
+    cd aws-insurancelake-infrastructure
+    ```
+1. Create a Python virtual environment.
+   - In AWS CloudShell your home directory is limited to 1 GB of *persistent* storage. To ensure we have enough storage to download and install the required Python packages, you will use AWS CloudShell's *temporary* storage, located in `/tmp`, which has a larger capacity.
+    ```bash
+    python3 -m venv /tmp/.venv
+    ```
+1. Activate the virtual environment.
+    ```bash
+    source /tmp/.venv/bin/activate
+    ```
+1. Install required Python libraries.
+    - NOTE: You may see a warning stating that a newer version is available; it is safe to ignore this for the Quickstart.
+    ```bash
+    pip install -r requirements.txt
+    ```
+1. Bootstrap CDK in your AWS account.
+    ```bash
+    cdk bootstrap
+    ```
 
-If you want to change the default models or Bedrock Region, edit `Bedrock` and `BedrockEmbeddings` in `backend/src/generate_response/main.py` and `backend/src/generate_embeddings/main.py`:
+### Deploy the Application
 
-```python
-Bedrock(
-   model_id="anthropic.claude-v2", #adjust to use different model
-   region_name="us-east-1", #adjust if not using us-east-1
-)
-```
+{:style="counter-reset:none"}
+1. Ensure you are still in the `aws-insurancelake-infrastructure` directory.
+1. Deploy infrastructure resources in the development environment (one stack).
+    ```bash
+    cdk deploy Dev-InsuranceLakeInfrastructurePipeline/Dev/InsuranceLakeInfrastructureS3BucketZones
+    ```
+1. Review and accept AWS Identity and Access Management (IAM) credential creation for the S3 bucket stack.
+    - Wait for deployment to finish (approximately 5 minutes).
+1. Copy the S3 bucket name for the Collect bucket to use later.
+    - Bucket name will be in the form: `dev-insurancelake-<AWS Account ID>-<Region>-collect`.
+1. Switch the working directory to the location of the _etl_ code.
+    ```bash
+    cd ../aws-insurancelake-etl
+    ```
+1. Deploy the ETL resources in the development environment (four stacks).
+    ```bash
+    cdk deploy Dev-InsuranceLakeEtlPipeline/Dev/InsuranceLakeEtlDynamoDb Dev-InsuranceLakeEtlPipeline/Dev/InsuranceLakeEtlGlue Dev-InsuranceLakeEtlPipeline/Dev/InsuranceLakeEtlStepFunctions Dev-InsuranceLakeEtlPipeline/Dev/InsuranceLakeEtlAthenaHelper
+    ```
+    - Wait for approximately 1 minute for DynamoDB deployment to finish.
+1. Review and accept IAM credential creation for the AWS Glue jobs stack.
+    - Wait approximately 3 minutes for deployment to finish.
+1. Review and accept IAM credential creation for the Step Functions stack.
+    - Wait approximately 7 minutes for deployment of Step Functions and Athena Helper stacks to finish.
 
-If you select models other than the default, you must also adjust the IAM permissions of the `GenerateEmbeddingsFunction` and `GenerateResponseFunction` resources in the AWS SAM template:
+### Try out the ETL Process
 
-```yaml
-GenerateResponseFunction:
-  Type: AWS::Serverless::Function
-  Properties:
-    # other properties
-    Policies:
-      # other policies
-      - Statement:
-          - Sid: "BedrockScopedAccess"
-            Effect: "Allow"
-            Action: "bedrock:InvokeModel"
-            Resource:
-              - "arn:aws:bedrock:*::foundation-model/anthropic.claude-v2" # adjust with different model
-              - "arn:aws:bedrock:*::foundation-model/amazon.titan-embed-text-v1" # adjust with different model
-```
+{:style="counter-reset:none"}
+1. Populate the DynamoDB lookup table with sample lookup data.
+    ```bash
+    resources/load_dynamodb_lookup_table.py SyntheticGeneralData dev-insurancelake-etl-value-lookup resources/syntheticgeneral_lookup_data.json
+    ```
+1. Transfer the sample claim data to the Collect bucket.
+    ```bash
+    aws s3 cp resources/syntheticgeneral-claim-data.csv s3://<Collect S3 bucket>/SyntheticGeneralData/ClaimData/
+    ```
+1. Transfer the sample policy data to the Collect bucket.
+    ```bash
+    aws s3 cp resources/syntheticgeneral-policy-data.csv s3://<Collect S3 bucket>/SyntheticGeneralData/PolicyData/
+    ```
+1. Open [Step Functions](https://console.aws.amazon.com/states/home) in the AWS Console and select `dev-insurancelake-etl-state-machine`.
+    ![Step Functions Selecting State Machine](https://raw.githubusercontent.com/aws-solutions-library-samples/aws-insurancelake-etl/main/docs/step_functions_select_state_machine.png)
+1. Open the state machine execution in progress and monitor the status until complete.
+    ![Step Functions Selecting Running Execution](https://raw.githubusercontent.com/aws-solutions-library-samples/aws-insurancelake-etl/main/docs/step_functions_select_running_execution.png)
+1. Open [Athena](https://console.aws.amazon.com/athena/home) in the AWS Console.
+1. Select `Launch Query Editor`, and change the Workgroup to `insurancelake`.
+1. Run the following query to view a sample of prepared data in the consume bucket:
+    ```sql
+    select * from syntheticgeneraldata_consume.policydata limit 100
+    ```
 
-### Deploy the application with AWS SAM
+### Next Steps
 
-1. Change to the `backend` directory and [build](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-build.html) the application:
+* Take the [InsuranceLake Deep Dive Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/0a85653e-07e9-41a8-960a-2d1bb592331b).
+    * You may skip to the [Modify and test a transform](https://catalog.us-east-1.prod.workshops.aws/workshops/0a85653e-07e9-41a8-960a-2d1bb592331b/en-US/modify-a-transform) step, as the prior steps overlap with the Quickstart instructions.
+* Try out [loading your own data](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/loading_data#landing-source-data).
+* Try the [Quickstart with CI/CD](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/quickstart_cicd/).
+* Dive deeper with the included [user documentation](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/user_documentation/).
+* Contact your AWS account team for a solution deep dive, workshops, or AWS Professional Services support.
 
+## Deployment Validation
+
+1. Transfer the sample claim data to the Collect bucket (Source system: SyntheticData, Table: ClaimData).
    ```bash
-   cd backend
-   sam build
+   aws s3 cp resources/syntheticgeneral-claim-data.csv s3://<Collect S3 bucket>/SyntheticGeneralData/ClaimData/
    ```
 
-1. [Deploy](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-deploy.html) the application into your AWS account:
-
+1. Transfer the sample policy data to the Collect bucket (Source system: SyntheticData, Table: PolicyData).
    ```bash
-   sam deploy --guided
+   aws s3 cp resources/syntheticgeneral-policy-data.csv s3://<Collect S3 bucket>/SyntheticGeneralData/PolicyData/
    ```
 
-1. For **Stack Name**, choose `serverless-pdf-chat`.
+1. Upon successful transfer of the file, an event notification from S3 will trigger the state-machine-trigger Lambda function.
 
-1. For the remaining options, keep the defaults by pressing the enter key.
+1. The Lambda function will insert a record into the DynamoDB table `{environment}-{resource_name_prefix}-etl-job-audit` to track job start status.
 
-AWS SAM will now provision the AWS resources defined in the `backend/template.yaml` template. Once the deployment is completed successfully, you will see a set of output values similar to the following:
+1. The Lambda function will also trigger the Step Functions State Machine. The State Machine execution name will be `<filename>-<YYYYMMDDHHMMSSxxxxxx>` and have the required metadata as input parameters.
 
-```bash
-CloudFormation outputs from deployed stack
--------------------------------------------------------------------------------
-Outputs
--------------------------------------------------------------------------------
-Key                 CognitoUserPool
-Description         -
-Value               us-east-1_gxKtRocFs
+1. The State Machine will trigger the AWS Glue job for Collect to Cleanse data processing.
 
-Key                 CognitoUserPoolClient
-Description         -
-Value               874ghcej99f8iuo0lgdpbrmi76k
+1. The Collect to Cleanse AWS Glue job will execute the transformation logic defined in configuration files.
 
-Key                 ApiGatewayBaseUrl
-Description         -
-Value               https://abcd1234.execute-api.us-east-1.amazonaws.com/dev/
--------------------------------------------------------------------------------
-```
+1. The AWS Glue job will load the data into the Cleanse bucket using the provided metadata. The data will be stored in S3 as `s3://{environment}-{resource_name_prefix}-{account}-{region}-cleanse/syntheticgeneraldata/claimdata/year=YYYY/month=MM/day=DD` in Apache Parquet format.
 
-You can find the same outputs in the `Outputs` tab of the `serverless-pdf-chat` stack in the AWS CloudFormation console. In the next section, you will use these outputs to run the React frontend locally and connect to the deployed resources in AWS.
+1. The AWS Glue job will create or update the Data Catalog table using the table name passed as a parameter based on the folder name (`PolicyData` and `ClaimData`).
 
-### Run the React frontend locally
+1. After the Collect to Cleanse AWS Glue job completes, the State Machine will trigger the Cleanse to Consume AWS Glue job.
 
-Create a file named `.env.development` in the `frontend` directory. [Vite will use this file](https://vitejs.dev/guide/env-and-mode.html) to set up environment variables when we run the application locally.
+1. The Cleanse to Consume AWS Glue job will execute the SQL logic defined in configuration files.
 
-Copy the following file content and replace the values with the outputs provided by AWS SAM:
+1. The Cleanse to Consume AWS Glue job will store the resulting data set in S3 as `s3://{environment}-{resource_name_prefix}-{account}-{region}-consume/syntheticgeneraldata/claimdata/year=YYYY/month=MM/day=DD` in Apache Parquet format.
 
-```plaintext
-VITE_REGION=us-east-1
-VITE_API_ENDPOINT=https://abcd1234.execute-api.us-east-1.amazonaws.com/dev/
-VITE_USER_POOL_ID=us-east-1_gxKtRocFs
-VITE_USER_POOL_CLIENT_ID=874ghcej99f8iuo0lgdpbrmi76k
-```
+1. The Cleanse to Consume AWS Glue job will create or update the Data Catalog table.
 
-Next, install the frontend's dependencies by running the following command in the `frontend` directory:
+1. After successful completion of the Cleanse to Consume AWS Glue job, the State Machine will trigger the etl-job-auditor Lambda function to update the DynamoDB table `{environment}-{resource_name_prefix}-etl-job-audit` with the latest status.
 
-```bash
-npm ci
-```
+1. An Amazon Simple Notification Service (Amazon SNS) notification will be sent to all subscribed users.
 
-Finally, to start the application locally, run the following command in the `frontend` directory:
+1. To validate the data load, use Athena and execute the following query:
 
-```bash
-npm run dev
-```
-
-Vite will now start the application under `http://localhost:5173`. As the application uses Amazon Cognito for authentication, you will be greeted by a login screen. In the next step, you will create a user to access the application.
-
-### Create a user in the Amazon Cognito user pool
-
-Perform the following steps to create a user in the Cognito user pool:
-
-1. Navigate to the **Amazon Cognito console**.
-1. Find the user pool with an ID matching the output provided by AWS SAM above.
-1. Under Users, choose **Create user**.
-1. Enter an email address and a password that adheres to the password requirements.
-1. Choose **Create user**.
-
-Change back to `http://localhost:5173` and log in with the new user's credentials.
-
-### Optional: Deploying the frontend with AWS Amplify Hosting
-
-You can optionally deploy the React frontend with [Amplify Hosting](https://aws.amazon.com/amplify/hosting/). Amplify Hosting enables a fully-managed deployment of the React frontend in an AWS-managed account using Amazon S3 and Amazon CloudFront.
-
-To set up Amplify Hosting:
-
-1. Fork this GitHub repository and take note of your repository URL, for example `https://github.com/user/serverless-pdf-chat/`.
-1. Create a GitHub fine-grained access token for the new repository by following [this guide](https://docs.aws.amazon.com/amplify/latest/userguide/setting-up-GitHub-access.html). For the **Repository permissions**, select **Read and write** for **Content** and **Webhooks**.
-1. Create a new secret called `serverless-pdf-chat-github-token` in AWS Secrets Manager and input your fine-grained access token as plaintext. Select the **Plaintext** tab and confirm your secret looks like this:
-
-   ```json
-   github_pat_T2wyo------------------------------------------------------------------------rs0Pp
-   ```
-
-1. Run the following command in the `backend` directory to edit the AWS SAM deploy configuration:
-
-   ```bash
-   sam deploy --guided
-   ```
-
-1. This time, for **Parameter Frontend**, input **amplify**.
-1. For **Parameter Repository**, input the URL of your forked GitHub repository.
-1. Leave all other options unchanged by pressing the enter key.
-
-AWS SAM will now deploy the React frontend with Amplify Hosting. Navigate to the Amplify console to check the build status. If the build does not start automatically, trigger it via the Amplify console.
+    ```sql
+    select * from syntheticgeneraldata_consume.policydata limit 100
+    ```
 
 ## Cleanup
 
-1. Delete any secrets in AWS Secrets Manager created as part of this walkthrough.
-1. [Empty the Amazon S3 bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/empty-bucket.html) created as part of the AWS SAM template.
-1. Run the following command in the `backend` directory of the project to delete all associated resources resources:
+Refer to the [Quickstart Cleanup](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/quickstart_cleanup/) instructions.
 
-   ```bash
-   sam delete
-   ```
+## Architecture
+
+This section focuses on the overall InsuranceLake architecture and the components of the ETL.
+
+### Collect, Cleanse, Consume
+
+As shown in the figure below, we use S3 for storage, specifically three different S3 buckets:
+1. Collect bucket to store raw data in its original format.
+1. Cleanse/Curate bucket to store the data that meets the quality and consistency requirements for the data source.
+1. Consume bucket for data that is used by analysts and data consumers (for example, Amazon Quicksight, Amazon Sagemaker).
+
+InsuranceLake is designed to support a number of source systems with different file formats and data partitions. To demonstrate, we have provided a CSV parser and sample data files for a source system with two data tables, which are uploaded to the Collect bucket.
+
+We use Lambda and Step Functions for orchestration and scheduling of ETL workloads. We then use AWS Glue with PySpark for ETL and data cataloging, DynamoDB for transformation persistence, and Athena for interactive queries and analysis. We use various AWS services for logging, monitoring, security, authentication, authorization, notification, build, and deployment.
+
+**Note:** [AWS Lake Formation](https://aws.amazon.com/lake-formation/) is a service that makes it easy to set up a secure data lake in days. [Amazon QuickSight](https://aws.amazon.com/quicksight/) is a scalable, serverless, embeddable, machine learning-powered business intelligence (BI) service built for the cloud. [Amazon DataZone](https://aws.amazon.com/datazone/) is a data management service that makes it faster and easier for customers to catalog, discover, share, and govern data stored across AWS, on premises, and third-party sources. These three services are not used in this solution but can be added.
+
+![Conceptual Data Lake](https://raw.githubusercontent.com/aws-solutions-library-samples/aws-insurancelake-etl/main/docs/Aws-cdk-insurancelake-data_lake.png)
+
+### ETL
+
+The figure below represents the ETL resources we provision for the data lake.
+
+1. A file server uploads files to the Collect bucket of InsuranceLake; file server is a data producer or source for the data lake.
+2. S3 triggers an ObjectCreated event notification to Lambda function.
+3. The Lambda function inserts job information in a DynamoDB table.
+4. The Lambda function starts an execution of Step Functions State machine.
+5. This step runs the first AWS Glue job: initiates data processing from Collect to Cleanse.
+6. An AWS Glue job will process the data from Collect to Cleanse; source data is assumed to be in CSV format and will be converted to Parquet format.
+7. DynamoDB stores original values from PII tokenization, and provides lookup data to the AWS Glue job.
+8. After creating Apache Parquet data, the job updates the AWS Glue Data Catalog table.
+9. In this step the second AWS Glue job initiates data processing from Cleanse to Consume.
+10. The AWS Glue Cleanse to Consume job fetches data transformation rules from AWS Glue etl-scripts bucket, and runs transformations.
+11. The AWS Glue job stores prepared data in Apache Parquet format in the Consume bucket.
+12. The AWS Glue job updates the AWS Glue Data Catalog table.
+13. The AWS Glue job updates the DynamoDB table with job status.
+14. Step Functions sends an SNS notification.
+15. Data engineers or analysts analyze data using Athena.
+
+![InsuranceLake ETL Architecture](https://raw.githubusercontent.com/aws-solutions-library-samples/aws-insurancelake-etl/main/docs/Aws-cdk-insurancelake-etl.png)
+
+---
 
 ## Security
 
-This application was written for demonstration and educational purposes and not for production use. The [Security Pillar of the AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html) can support you in further adopting the sample into a production deployment in addition to your own established processes. Take note of the following:
+For more information on how AWS services come together in InsuranceLake to align with the [Security Pillar of the AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/security.html) refer to the [InsuranceLake Well-Architected Pillar Alignment for Security](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl/well_architected/#security).
 
-- The application uses encryption in transit and at rest with AWS-managed keys where applicable. Optionally, use [AWS KMS](https://aws.amazon.com/kms/) with [DynamoDB](https://docs.aws.amazon.com/kms/latest/developerguide/services-dynamodb.html), [SQS](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-server-side-encryption.html), and [S3](https://docs.aws.amazon.com/kms/latest/developerguide/services-s3.html) for more control over encryption keys.
+### Infrastructure Code
 
-- This application uses [Powertools for AWS Lambda (Python)](https://github.com/aws-powertools/powertools-lambda-python) to log to inputs and ouputs to CloudWatch Logs. Per default, this can include sensitive data contained in user input. Adjust the log level and remove log statements to fit your security requirements.
+InsuranceLake uses [CDK-nag](https://github.com/cdklabs/cdk-nag) to confirm AWS resource security recommendations are followed. CDK-nag can generate warnings, which may need to be fixed depending on the context, and errors, which will interrupt the stack synthesis and prevent any deployment.
 
-- [API Gateway access logging](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html#set-up-access-logging-using-console) and [usage plans](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-usage-plans.html) are not activiated in this code sample. Similarly, [S3 access logging](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-loggingconfig.html) is currently not enabled.
+To force synthesis of all stacks (including the CodePipeline deployed stacks), which will check all code and generate all reports, use the following command:
 
-- In order to simplify the setup of the demo, this solution uses AWS managed policies associated to IAM roles that contain wildcards on resources. Please consider to further scope down the policies as you see fit according to your needs. Please note that there is a resource wildcard on the AWS managed `AWSLambdaSQSQueueExecutionRole`. This is a known behaviour, see [this GitHub issue](https://github.com/aws/serverless-application-model/issues/2118) for details.
+```bash
+cdk synth '**'
+```
 
-- If your security controls require inspecting network traffic, consider [adjusting the AWS SAM template](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html) to attach the Lambda functions to a VPC via its [`VpcConfig`](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-vpcconfig.html).
+When this operation is complete, you will also have access to the CDK-nag reports in CSV format in the `cdk.out` directory and assembly directories.
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+By default the [AWS Solutions Rules Pack](https://github.com/cdklabs/cdk-nag/blob/main/RULES.md#aws-solutions) is used, but any combination of CDK Nag Rules packs can be selected by adjusting the source code **in four locations** (two for both the Infrastructure and ETL codebases):
 
-## License
+[Infrastructure app.py Line 21](https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure/blob/main/app.py#L21), [ETL app.py Line 20](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/app.py#L20):
 
-This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) file.
+```python
+# Enable CDK Nag for the Mirror repository, Pipeline, and related stacks
+# Environment stacks must be enabled on the Stage resource
+cdk.Aspects.of(app).add(AwsSolutionsChecks())
+```
+
+[Infrastructure pipeline_stack.py Line 148](https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure/blob/main/lib/pipeline_stack.py#L148), [ETL pipeline_stack.py Line 147](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/pipeline_stack.py#L147)
+```python
+        # Enable CDK Nag for environment stacks before adding to
+        # pipeline, which are deployed with CodePipeline
+        cdk.Aspects.of(pipeline_deploy_stage).add(AwsSolutionsChecks())
+```
+
+### Application Code
+
+InsuranceLake uses [Bandit](https://bandit.readthedocs.io/en/latest) and [Amazon CodeGuru](https://docs.aws.amazon.com/codeguru/latest/reviewer-ug/welcome.html) for static code analysis of all helper scripts, Lambda functions, and PySpark Glue Jobs.
+
+To configure CodeGuru Code Reviews, follow the [AWS Documentation on creating Code Reviews](https://docs.aws.amazon.com/codeguru/latest/reviewer-ug/create-code-reviews.html).
+
+To scan all application code using Bandit, use the following command:
+
+```bash
+bandit -r --ini .bandit
+```
+
+---
+
+## Additional Resources
+
+- [InsuranceLake Documentation](https://aws-solutions-library-samples.github.io/aws-insurancelake-etl)
+- [InsuranceLake Quickstart AWS Workshop](https://catalog.workshops.aws/insurancelake)
+- [InsuranceLake Deep Dive AWS Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/0a85653e-07e9-41a8-960a-2d1bb592331b)
+- [General Insurance dashboard](https://democentral.learnquicksight.online/#Dashboard-DashboardDemo-General-Insurance) on Quicksight's DemoCentral using Consume-ready-data
+- [Life Insurance dashboard](https://democentral.learnquicksight.online/#Dashboard-DashboardDemo-Life-Insurance) also on Quicksight's DemoCentral
+- [AWS Solutions Library Guidance for Modern Insurance Data Lakes](https://aws.amazon.com/solutions/guidance/modern-insurance-data-lakes-on-aws)
+- [InsuranceLake in the AWS Well-Architected Framework Financial Services Industry Lens](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/insurance-lake.html)
+
+## Authors
+
+The following people are involved in the design, architecture, development, testing, and review of this solution:
+
+1. **Cory Visi**, Senior Solutions Architect, Amazon Web Services
+1. **Ratnadeep Bardhan Roy**, Senior Solutions Architect, Amazon Web Services
+1. **Jose Guay**, Enterprise Support, Amazon Web Services
+1. **Isaiah Grant**, Cloud Consultant, 2nd Watch, Inc.
+1. **Muhammad Zahid Ali**, Data Architect, Amazon Web Services
+1. **Ravi Itha**, Senior Data Architect, Amazon Web Services
+1. **Justiono Putro**, Cloud Infrastructure Architect, Amazon Web Services
+1. **Mike Apted**, Principal Solutions Architect, Amazon Web Services
+1. **Nikunj Vaidya**, Senior DevOps Specialist, Amazon Web Services
+
+## License Summary
+
+This sample code is made available under the MIT-0 license. See the LICENSE file.
+
+Copyright Amazon.com and its affiliates; all rights reserved. This file is Amazon Web Services Content and may not be duplicated or distributed without permission.

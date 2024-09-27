@@ -1,8 +1,7 @@
 ---
 title: Quickstart with CI/CD
-parent: Quickstart
-nav_order: 2
-layout: page
+parent: Getting Started
+nav_order: 3
 last_modified_date: 2024-09-23
 ---
 # InsuranceLake Quickstart with CI/CD Guide
