@@ -52,6 +52,8 @@ The figure below represents the centralized deployment model.
 
 ![Data Lake Repository Branch Strategy](Aws-cdk-pipelines-blog-datalake-branch_strategy_etl.png)
 
+Note the following considerations:
+
 * Each source code repository should be organized into three branches, one for each environment (main branch is often used for production).
 * Each branch is mapped to an AWS CDK Pipeline and a target environment. This way, code changes made to the branches are deployed iteratively to their respective target environment.
 * Using AWS CDK, we apply the the following bootstrapping design:
@@ -80,9 +82,6 @@ The figure below illustrates the continuous delivery of ETL resources for the da
 This section provides the details for full deployment.
 
 ### Software Installation
-
-{: .note }
-If using AWS Cloud9, you only need to fork the repository, and proceed to [AWS Environment Bootstrapping](#aws-environment-bootstrapping), as the other software is pre-installed.
 
 1. **AWS CLI**: Confirm you have AWS CLI configured on your system. If not, refer to [Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) for more details.
 

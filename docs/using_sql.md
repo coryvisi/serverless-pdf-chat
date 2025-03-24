@@ -2,36 +2,29 @@
 title: SQL Usage
 parent: User Documentation
 nav_order: 7
-last_modified_date: 2024-09-23
+last_modified_date: 2025-03-21
 ---
 # InsuranceLake Cleanse-to-Consume SQL Usage Documentation
+{: .no_toc }
 
 The InsuranceLake ETL uses SQL to define the views of data created in the Cleanse-to-Consume AWS Glue job that are stored in the Consume Amazon S3 bucket and database with the suffix `_consume`. There are two kinds of SQL files supported:
 
-* **Spark SQL**: Executed by the Spark session within AWS Glue and used to create a partitioned copy of the data in the Consume Amazon S3 bucket and AWS Glue Data Catalog database
+* **Spark SQL**: Executed by the Spark session within AWS Glue and used to create a partitioned copy of the data in the Consume Amazon S3 bucket and Data Catalog database
 
-* **Athena SQL**: Executed through an Athena API and used to create views based off the data in the Consume Amazon S3 bucket and AWS Glue Data Catalog database
+* **Athena SQL**: Executed through the Athena API and used to create views based off the data in the Consume or Cleanse Amazon S3 bucket and Data Catalog database
 
-While the ETL recommends certain approaches for the use of Spark and Athena SQL, there are no absolute restrictions on how the SQL is used. Particularly, Athena SQL can be used for any SQL query that Athena supports.
+* **Amazon Redshift SQL**: Executed through the Amazon Redshift Data API and used to create views based off the data in the Consume or Cleanse Amazon S3 bucket and Data Catalog database
+
+While the ETL recommends certain approaches for the use of Spark, Athena, and Amazon Redshift SQL, there are no absolute restrictions on how the SQL is used. Particularly, Athena SQL can be used for any SQL query that Athena supports. Amazon Redshift SQL can be used for any SQL query that Amazon Redshift supports, including creation of materialized views, external schemas, and tables using Amazon Redshift Managed Storage.
 
 Both SQL files are **optional** in a data pipeline. A pipeline can succeed with no SQL files defined.
 
-## Contents
 
-* [Spark SQL](#spark-sql)
-* [Athena SQL](#athena-sql)
-* [Variable Substitution](#variable-substitution)
-* [Pattern Library](#pattern-library)
-    * [Simplest Method to Populate Consume](#simplest-method-to-populate-consume)
-    * [Join Example](#join-example)
-    * [Override Table Name Example](#override-table-name-example)
-    * [Override Partition Fields in Consume](#override-partition-fields-in-consume)
-    * [Partition Snapshot View](#partition-snapshot-view)
-    * [Union Example with Literals as Placeholders](#union-example-with-literals-as-placeholders)
-    * [Case Statement Examples](#case-statement-examples)
-    * [Unpivot / Stack](#unpivot--stack)
-    * [Key Value Pivot](#key-value-pivot)
-    * [Athena Fixed Width View](#athena-fixed-width-view)
+## Contents
+{: .no_toc }
+
+* TOC
+{:toc}
 
 
 ## Spark SQL
@@ -40,7 +33,7 @@ Apache Spark SQL is defined in a file following the naming convention of `spark-
 
 A full reference for all the syntax and commands available in Spark SQL can be found in the [Apache Spark SQL Reference](https://spark.apache.org/docs/latest/sql-ref.html) documentation.
 
-The AWS Glue Data Catalog is an Apache Hive metastore-compatible catalog ([Reference](https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-data-catalog-hive.html)). InsuranceLake ETL AWS Glue jobs are configured to use the AWS Glue Data Catalog as an external Apache Hive metastore. Spark SQL is used to query the AWS Glue Data Catalog and load data from data lake sources (typically in the Cleanse bucket) into a Apache Spark DataFrame. The DataFrame is subsequently written to the Consume bucket and the AWS Glue Data Catalog using a database name with an appended `_consume` suffix.
+The AWS Glue Data Catalog is an Apache Hive metastore-compatible catalog ([Reference](https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-data-catalog-hive.html)). InsuranceLake ETL AWS Glue jobs are configured to use the Data Catalog as an external Apache Hive metastore. Spark SQL is used to query the Data Catalog and load data from data lake sources (typically in the Cleanse bucket) into a Apache Spark DataFrame. The DataFrame is subsequently written to the Consume bucket and the Data Catalog using a database name with an appended `_consume` suffix.
 
 The following are considerations and requirements for InsuranceLake's integration of Spark SQL:
 
@@ -50,13 +43,13 @@ The following are considerations and requirements for InsuranceLake's integratio
 
 * The most basic form is a `select * from cleanse_table` SQL statement, which will create a copy of the Cleanse bucket table specified and write it to the Consume bucket.
 
-* Queries should be written to pull all data in tables, not just the most recent partition (unless that is the desired view). This is because the entire Consume bucket table is rewritten each time the workflow runs. If this implementation creates performance issues for the workflow, you can modify the behavior on [line 190 of the `etl_cleanse_to_consume.py` script](https://github.com/aws-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_cleanse_to_consume.py#L198) by commenting out the table deletion as follows:
+* Queries should be written to pull all data in tables, not just the most recent partition (unless that is the desired view). This is because the entire Consume bucket table is rewritten each time the workflow runs. If this implementation creates performance issues for the workflow, you can modify the behavior on [line 198 of the `etl_cleanse_to_consume.py` script](https://github.com/aws-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_cleanse_to_consume.py#L198) by commenting out the table deletion as follows:
 
     ```python
     # glueContext.purge_s3_path(storage_location, options={ 'retentionPeriod': 0 })
     ```
 
-* There is no limitation to the databases and tables that can be referenced and joined in your Spark SQL query. Any table in the AWS Glue Data Catalog is available.
+* There is no limitation to the databases and tables that can be referenced and joined in your Spark SQL query. Any table in the Data Catalog is available.
 
 * If no Spark SQL file exists, there will be no error in the workflow. The Spark SQL file is optional; without it, **no table will be created in the Consume bucket**. It is often useful to skip this file initially to facilitate iteratively building a data workflow.
 
@@ -70,7 +63,7 @@ The following are considerations and requirements for InsuranceLake's integratio
     > ```python
     > r'\s*CREATE TABLE\s+["`\']?([\w]+)["`\']?\s+AS(.*)'
     > ```
-    > [Test your Spark SQL using a regular expression visualization tool](https://regex-vis.com/?r=%5Cs*CREATE+TABLE%5Cs%2B%5B%22%60%5C%27%5D%3F%28%5B%5Cw%5D%2B%29%5B%22%60%5C%27%5D%3F%5Cs%2BAS%28.*%29){:target="_blank"}.
+    > [Test your Spark SQL using a regular expression visualization tool](https://regex-vis.com/?r=%5Cs*CREATE+TABLE%5Cs%2B%5B%22%60%5C%27%5D%3F%28%5B%5Cw%5D%2B%29%5B%22%60%5C%27%5D%3F%5Cs%2BAS%28.*%29).
 
 Example patterns using Spark SQL:
 * [Simplest Method to Populate Consume](#simplest-method-to-populate-consume)
@@ -85,7 +78,7 @@ Example patterns using Spark SQL:
 
 ## Athena SQL
 
-Athena SQL is defined in a file following the naming convention of `athena-<database name>-<table name>.sql` and is stored in the `/etl/transformation-sql` folder in the `etl-scripts` bucket. When using CDK for deployment, the contents of the `/lib/glue_scripts/lib/transformation-sql` directory will be automatically deployed to this location.
+Athena SQL is defined in a file following the naming convention of `athena-<database name>-<table name>.sql` and is stored in the `/etl/transformation-sql` folder in the `etl-scripts` bucket. When using AWS CDK for deployment, the contents of the `/lib/glue_scripts/lib/transformation-sql` directory will be automatically deployed to this location.
 
 Athena SQL is based on Trino and Presto SQL. The Athena SQL engine generally supports Trino and Presto syntax and adds its own improvements. Athena does not support all Trino or Presto features. A full reference for all the syntax and commands available in Athena SQL can be found in the [Athena SQL Reference documentation](https://docs.aws.amazon.com/athena/latest/ug/ddl-sql-reference.html).
 
@@ -115,7 +108,7 @@ The following are considerations and requirements for InsuranceLake's integratio
     athena_execute_query() exceeded max_attempts waiting for query
     ```
 
-    If your query usage requires more than 15 seconds to execute, you will need to increase the number of Athena status attempts specified in the `athena_execute_query()` function call on [line 228 of the `etl_cleanse_to_consume.py` script](https://github.com/aws-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_cleanse_to_consume.py#L236) as follows:
+    If your query usage requires more than 15 seconds to execute, you will need to increase the number of Athena status attempts specified in the `athena_execute_query()` function call on [line 237 of the `etl_cleanse_to_consume.py` script](https://github.com/aws-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_cleanse_to_consume.py#L237) as follows:
 
     ```python
     status = athena_execute_query(
@@ -126,6 +119,37 @@ Example patterns using Athena SQL:
 * [Partition Snapshot View](#partition-snapshot-view)
 * [Key Value Pivot](#key-value-pivot)
 * [Athena Fixed Width View](#athena-fixed-width-view)
+
+
+## Amazon Redshift SQL
+
+Amazon Redshift SQL is defined in a file following the naming convention of `redshift-<database name>-<table name>.sql` and is stored in the `/etl/transformation-sql` folder in the `etl-scripts` bucket. When using AWS CDK for deployment, the contents of the `/lib/glue_scripts/lib/transformation-sql` directory will be automatically deployed to this location.
+
+Amazon Redshift is based on PostgreSQL. However, the specialized data storage schema and query execution engine that Amazon Redshift uses are completely different from the PostgreSQL implementation. Many Amazon Redshift SQL language elements have different performance characteristics and use syntax and semantics and that are quite different from the equivalent PostgreSQL implementation. For details and a full reference guide, refer to the following AWS documentation sections:
+- [Amazon Redshift features that are implemented differently](https://docs.aws.amazon.com/redshift/latest/dg/c_redshift-sql-implementated-differently.html)
+- [Unsupported PostgreSQL features](https://docs.aws.amazon.com/redshift/latest/dg/c_unsupported-postgresql-features.html)
+- [Unsupported PostgreSQL data types](https://docs.aws.amazon.com/redshift/latest/dg/c_unsupported-postgresql-datatypes.html)
+- [Unsupported PostgreSQL functions](https://docs.aws.amazon.com/redshift/latest/dg/c_unsupported-postgresql-functions.html)
+- [Amazon Redshift Database Developer Guide SQL commands](https://docs.aws.amazon.com/redshift/latest/dg/c_SQL_commands.html)
+
+Refer to the [Amazon Redshift Integration Guide](redshift_integration_guide.md) for instructions on granting InsuranceLake AWS Glue jobs correct permissions to Amazon Redshift resources.
+
+The following are considerations and requirements for InsuranceLake's integration with Amazon Redshift SQL:
+
+* You can create views directly on the Amazon S3 data using the `awsdatacatalog` prefix to databases and tables. These views will run directly on the S3 data lake and can only be read-only.
+    ```sql
+    SELECT * FROM awsdatacatalog.<data-catalog-db-name>.<data-catalog-table-name>;
+    ```
+
+* [Materialized views in Amazon Redshift](https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-overview.html) can only be created on external schemas. InsuranceLake does not automatically create an external schema connected to the data lake.
+
+* You can create external schemas outside of the InsuranceLake workflow to allow creation of materialized views in the workflow and improve performance of queries on the view. See [Amazon Redshift setup](redshift_integration_guide.md#create-an-external-schema) for instructions.
+
+* Multiple statements can be separated by semi-colons `;`. The entire SQL file is sent to Amazon Redshift via API and is limited by [Amazon Redshift's maximum size for a single SQL statement](https://docs.aws.amazon.com/redshift/latest/dg/c_redshift-sql.html).
+
+Example patterns using Amazon Redshift SQL:
+* [Simple Amazon Redshift Materialized View](#simple-amazon-redshift-materialized-view)
+* [Box Plot Amazon Redshift View](#box-plot-amazon-redshift-spectrum-view)
 
 
 ## Variable Substitution
@@ -162,9 +186,9 @@ The following Cleanse-to-Consume AWS Glue job parameters are available for subst
 |state_machine_name	|Name of the AWS Step Function State Machine definition, assigned at the time InsuranceLake is deployed
 |execution_id	|Unique value assigned to the AWS Step Functions State Machine execution; uniquely identifies the ETL pipeline run
 |source_key	|First and second level folder structure as defined in the Collect bucket in the form `database/table`
-|source_database_name	|AWS Glue Data Catalog database name pointing to the Cleanse bucket on which to run the Spark and Athena SQL by default
-|target_database_name	|AWS Glue Data Catalog database name pointing to the Consume bucket where the Spark SQL results will be written
-|table_name	|AWS Glue Data Catalog database name pointing to the common table name used in the Cleanse and Consume databases
+|source_database_name	|Data Catalog database name pointing to the Cleanse bucket on which to run the Spark and Athena SQL by default
+|target_database_name	|Data Catalog database name pointing to the Consume bucket where the Spark SQL results will be written
+|table_name	|Data Catalog database name pointing to the common table name used in the Cleanse and Consume databases
 |base_file_name	|Name of the source filename as it appears in the Collect bucket
 |p_year	|Value used in the year partition as specified in the AWS Step Functions State Machine input parameters (by default, corresponds to the created date of the source file)
 |p_month	|Value used in the month partition as specified in the AWS Step Functions State Machine input parameters (by default, corresponds to the created date of the source file)
@@ -399,7 +423,7 @@ We recommend performing this operation in the Cleanse-to-Consume AWS Glue job, s
 This unpivot operation can be accomplished using the [Spark stack generator function](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.stack.html).
 
 {: .note }
-An alternative approach, which would better self-document your intent, is to use the [Spark unpivot function](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.unpivot.html). However, this function was introduced in Spark 3.4.0, which is not yet supported by Glue.
+An alternative approach, which would better self-document your intent, is to use the [Spark unpivot function](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.unpivot.html). This function is available in AWS Glue v5.
 
 ```sql
 SELECT
@@ -517,7 +541,7 @@ FROM mydb_consume.mytable
 
 ### Athena Fixed Width View
 
-Some reporting requirements, such as regulatory, require the use of a fixed width format. Once the data is prepared in the Consume layer, you can use the [lpad](https://prestodb.io/docs/current/functions/string.html#lpad) and [coalesce](https://prestodb.io/docs/current/functions/conditional.html#coalesce) Athena functions to create a view that includes the policy number and report date columns for traceability.
+Some reporting requirements, such as regulatory, require the use of a fixed width format. Once the data is prepared in the Consume layer, you can use the [lpad](https://prestodb.io/docs/current/functions/string.html#lpad-string-size-padstring-varchar) and [coalesce](https://prestodb.io/docs/current/functions/conditional.html#coalesce) Athena functions to create a view that includes the policy number and report date columns for traceability.
 
 ```sql
 CREATE OR REPLACE VIEW stat_report AS
@@ -572,3 +596,46 @@ SELECT
     ) AS fwf_line
 FROM syntheticgeneraldata.stat_data
 ```
+
+
+### Simple Amazon Redshift Materialized View
+
+This example assumes you have created an external schema outside the InsuranceLake workflow and assigned appropriate permissions to the workgroup or cluster default IAM role. For instructions, refer to the [Amazon Redshift integration guide](redshift_integration_guide.md).
+
+The following Amazon Redshift SQL runs within the workflow to create the view:
+
+```sql
+DROP MATERIALIZED VIEW IF EXISTS "general_insurance_redshift_materialized"
+;
+
+CREATE MATERIALIZED VIEW "general_insurance_redshift_materialized"
+BACKUP NO
+DISTKEY ( policynumber )
+AUTO REFRESH NO
+AS
+SELECT *
+FROM redshift_external_schema.policydata
+;
+```
+
+
+### Box Plot Amazon Redshift Spectrum View
+
+This Amazon Redshift Spectrum query calculates the data for a box plot of incurred claim amounts for the commercial auto line of business using analytics functions:
+
+    ```sql
+    SELECT
+        MIN(CAST(amt AS DECIMAL(38,2))) as minimum,
+        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as q1,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as median,
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as q3,
+        MAX(CAST(amt AS DECIMAL(38,2))) as maximum,
+        AVG(CAST(amt AS DECIMAL(38,2))) as mean,
+        STDDEV(CAST(amt AS DECIMAL(38,2))) as std_dev
+    FROM (
+        SELECT
+            "accidentyeartotalincurredamount" as amt
+        FROM awsdatacatalog.syntheticgeneraldata_consume.policydata
+        WHERE lobcode = 'AUTO'
+    )
+    ```

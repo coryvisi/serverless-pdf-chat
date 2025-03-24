@@ -24,16 +24,16 @@ The InsuranceLake ETL provides capabilities to detect, control, and configure sc
 * [Schema detection and control using Data Catalog integration and configuration settings](#schema-change-setting)
 * [Strict and non-strict schema mapping functionality](./schema_mapping.md#dropping-columns)
 * [Data quality checks for column existence](./data_quality.md#configuration)
-    * [ColumnExists](https://docs.aws.amazon.com/glue/latest/dg/dqdl.html#dqdl-rule-types-ColumnExists)
-    * [isComplete](https://docs.aws.amazon.com/glue/latest/dg/dqdl.html#dqdl-rule-types-IsComplete)
-    * [Completeness](https://docs.aws.amazon.com/glue/latest/dg/dqdl.html#dqdl-rule-types-Completeness)
+    * [ColumnExists](https://docs.aws.amazon.com/glue/latest/dg/dqdl-rule-types-ColumnExists.html)
+    * [IsComplete](https://docs.aws.amazon.com/glue/latest/dg/dqdl-rule-types-IsComplete.html)
+    * [Completeness](https://docs.aws.amazon.com/glue/latest/dg/dqdl-rule-types-Completeness.html)
 
 Behavior and capabilities for allowing schema evolution vary depending on the data lake layer (Cleanse and Consume) and the table storage format.
 
 
 ## Schema Change Setting
 
-The `allow_schema_change` setting for your workflow is defined in the `input-spec` section of the workflow's JSON configuration file. Details on this configuration file can be found in the [File Formats and Input Specification Documentation](./file_formats.md#input-specification).
+The `allow_schema_change` setting for your workflow is defined in the `input-spec` section of the workflow's JSON configuration file. Details on this configuration file can be found in the [File Formats and Input Specification Documentation](file_formats.md#input-specification).
 
 |Setting	|Behavior
 |---	|---
@@ -52,7 +52,7 @@ If the `allow_schema_change` setting is not specified, the ETL defaults to a val
 
 To change the environment-based default behavior, modify the conditional expression starting on [Line 85 of the Collect-to-Cleanse AWS Glue job](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_collect_to_cleanse.py#L85).
 
-To extend or change the specific schema change detection and control behavior, modify the `check_schema_change` function starting on [Line 71 of the glue_catalog_helpers module](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/lib/glue_catalog_helpers.py#L71).
+To extend or change the specific schema change detection and control behavior, modify the `check_schema_change` function starting on [Line 88 of the glue_catalog_helpers module](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/lib/glue_catalog_helpers.py#L88).
 
 ### Evolve Setting Data Type Change Details
 
@@ -88,7 +88,7 @@ By default, the Collect-to-Cleanse and Cleanse-to-Consume InsuranceLake AWS Glue
 
 If an unsupported change is published to the data lake, queries across partitions with those schema differences will fail. You can work around this issue by selectively querying specific partitions, but some partitions will always trigger the schema merge failure. This is because Athena and Spark will always use the schema in the Data Catalog as the target for schema merges.
 
-Tables created by the ETL use **read-by-name** by default. This means that reordering columns, adding columns in any location, and removing columns is supported; however, renaming column in place is not supported.
+Tables created by the ETL use **read-by-name** by default. This means that reordering columns, adding columns in any location, and removing columns is supported; however, renaming a column in place is not supported. Renaming a column in place will be recognized as a column addition and a column removal at the same time.
 
 When columns are missing from a partition, rows from that partition will have null values in the missing columns.
 
@@ -116,7 +116,7 @@ Athena behaves similarly to Spark when merging partitions with different schemas
 
 * For Athena supported schema changes and an explanation of behavior, refer to the [Updates and data formats in Athena](https://docs.aws.amazon.com/athena/latest/ug/handling-schema-updates-chapter.html#summary-of-updates) documentation and [Updates in tables with partitions](https://docs.aws.amazon.com/athena/latest/ug/updates-and-partitions.html) documentation.
 
-* For compatible data type changes refer to [Changing a column's data type](https://docs.aws.amazon.com/athena/latest/ug/types-of-updates.html#updates-changing-column-type).
+* For compatible data type changes refer to [Change a column data type](https://docs.aws.amazon.com/athena/latest/ug/updates-changing-column-type.html).
 
     {: .note }
     Some supported data type conversions are not listed, for example, changing decimal precision and scale.
