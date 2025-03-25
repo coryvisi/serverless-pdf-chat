@@ -67,7 +67,7 @@ AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshi
     Modify the below code to use the correct ARN for your Amazon Redshift Serverless workgroup or cluster.
     ARNs for Amazon Redshift serverless workgroups follow the convention:
     `arn:aws:redshift-serverless:<REGION>:<ACCOUNT ID>:workgroup/<WORKGROUP UUID>`.
-    ARNs for Amazon Redshift cluters follow the convention: `arn:aws:redshift:<REGION>:<ACCOUNT ID>:cluster:<CLUSTER ID>`.
+    ARNs for Amazon Redshift clusters follow the convention: `arn:aws:redshift:<REGION>:<ACCOUNT ID>:cluster:<CLUSTER ID>` and `arn:aws:redshift:<REGION>:<ACCOUNT ID>:dbname:<CLUSTER ID>/*`.
 
     ```python
                     'RedshiftAccess':

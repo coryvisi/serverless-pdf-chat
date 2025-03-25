@@ -605,8 +605,7 @@ This example assumes you have created an external schema outside the InsuranceLa
 The following Amazon Redshift SQL runs within the workflow to create the view:
 
 ```sql
-DROP MATERIALIZED VIEW IF EXISTS "general_insurance_redshift_materialized"
-;
+DROP MATERIALIZED VIEW IF EXISTS "general_insurance_redshift_materialized";
 
 CREATE MATERIALIZED VIEW "general_insurance_redshift_materialized"
 BACKUP NO
@@ -614,8 +613,7 @@ DISTKEY ( policynumber )
 AUTO REFRESH NO
 AS
 SELECT *
-FROM redshift_external_schema.policydata
-;
+FROM redshift_external_schema.policydata;
 ```
 
 
@@ -637,5 +635,5 @@ FROM (
         "accidentyeartotalincurredamount" as amt
     FROM awsdatacatalog.syntheticgeneraldata_consume.policydata
     WHERE lobcode = 'AUTO'
-)
+);
 ```
