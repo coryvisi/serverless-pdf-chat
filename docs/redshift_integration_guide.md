@@ -2,7 +2,7 @@
 title: Amazon Redshift Integration Guide
 parent: Developer Documentation
 nav_order: 4
-last_modified_date: 2025-03-21
+last_modified_date: 2025-03-24
 ---
 
 # Amazon Redshift Integration Guide
@@ -22,14 +22,16 @@ This section provides instructions for configuring [Amazon Redshift](https://doc
 
 You can use an [Amazon Redshift cluster](https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html) or [Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-whatis.html) workgroup to directly query Data Catalog tables. You can optionally register databases in the Data Catalog created by InsuranceLake as Amazon Redshift external schemas, and create materialized views for improved query performance from Amazon Redshift's optimized compute engine.
 
-Access to the data lake data from Amazon Redshift relies on [Amazon Redshift Spectrum](https://docs.aws.amazon.com/redshift/latest/dg/c-getting-started-using-spectrum.html#c-getting-started-using-spectrum-prerequisites), which requires that the workgroup or cluster be located in the same AWS Region.
+Access to the data lake data from Amazon Redshift relies on [Amazon Redshift Spectrum](https://docs.aws.amazon.com/redshift/latest/dg/c-getting-started-using-spectrum.html#c-getting-started-using-spectrum-prerequisites), which requires that the workgroup or cluster be located in the same AWS Region as the data lake.
 
 If you need to create an Amazon Redshift Serverless workgroup or cluster, follow the respective getting started guides:
 * [Get started with Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/gsg/new-user-serverless.html)
 * [Get started with Amazon Redshift provisioned](https://docs.aws.amazon.com/redshift/latest/gsg/new-user.html)
 
+For the steps below, ensure you can connect to Amazon Redshift with **superuser privileges**. You do not need an Amazon Redshift user associated with an IAM identity for the below steps.
 
-## Data Lake Permissions
+
+### Data Lake permissions
 
 Your Amazon Redshift workgroup or cluster must have the correct permissions to access the data lake. InsuranceLake deployment creates a customer-managed IAM policy that you can use to provide this access.
 
@@ -55,7 +57,7 @@ Your Amazon Redshift workgroup or cluster must have the correct permissions to a
     ![Attach Consumer Policy to Amazon Redshift Role](iam_attach_consumer_policy.png)
 
 
-## Amazon Redshift Permissions
+### Amazon Redshift permissions
 
 AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshift resources and execute SQL statements. Follow the below steps to add these permissions to the IAM role used by ETL jobs by modifying the InsuranceLake AWS Glue stack.
 
@@ -76,9 +78,11 @@ AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshi
                                 'redshift-data:ExecuteStatement',
                                 'redshift-data:BatchExecuteStatement',
                                 'redshift-serverless:GetCredentials',
+                                'redshift:GetClusterCredentialsWithIAM',
                             ],
                             resources=[
                                 '<CLUSTER OR WORKGROUP ARN>',
+                                '<CLUSTER DATABASE>',
                             ]
                         ),
                         iam.PolicyStatement(
@@ -129,7 +133,7 @@ AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshi
     ```
 
 
-## Configure database connection parameters
+### Database connection parameters
 
 The Cleanse-to-Consume AWS Glue job requires extra parameters to create views in Amazon Redshift.
 
@@ -212,6 +216,8 @@ Ensure you have successfully run a workflow to create each database before runni
     GRANT SELECT ON ALL TABLES IN SCHEMA "datalake_syntheticgeneraldata_consume" TO "IAMR:dev-insurancelake-us-east-2-glue-role";
     ```
 
+1. Grant other users or groups access to the external schema as needed.
+
 1. Repeat these steps for other databases as needed.
 
 For more details and examples of creating materialized views using the external schemas created above, see the [Amazon Redshift SQL](using_sql.md#amazon-redshift-sql) section of the InsuranceLake Cleanse-to-Consume SQL Usage Documentation.
@@ -225,6 +231,12 @@ These instructions assume you have completed the [Quickstart guide](quickstart.m
 1. Access the [Amazon Redshift query console](https://console.aws.amazon.com/sqlworkbench/home#/client).
 
 1. If you have just created your Redshift Serverless workgroup or cluster, you will be prompted for your connection method.
+    *** Ensure you are connecting as a superuser that can grant permissions, either a Federated user, or AWS Secrets Manager, probably replace this section, and move to Setup
+
+"The current user is not authenticated with IAM credentials"
+Edit the connection and choose Temporary credentials using your IAM identity
+    MUST CONNECT WITH IAM USER, or have an IAM user associated with Redshift user to connect to Data Catalog
+
     1. Choose `Federated user` under `Other ways to connect`.
     1. Select `Create connection`.
 
@@ -240,6 +252,6 @@ Example queries using Amazon Redshift SQL:
 * [Box Plot Amazon Redshift View](using_sql.md#box-plot-amazon-redshift-spectrum-view)
 
 
-## Connect to Amazon Redshift - WORK IN PROGRESS
+## Use Amazon Redshift for Consume Layer Storage - WORK IN PROGRESS
 
 ![AWS Glue Data Connection to Amazon Redshift](./glue_connection_redshift.png)

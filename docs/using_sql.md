@@ -623,19 +623,19 @@ FROM redshift_external_schema.policydata
 
 This Amazon Redshift Spectrum query calculates the data for a box plot of incurred claim amounts for the commercial auto line of business using analytics functions:
 
-    ```sql
+```sql
+SELECT
+    MIN(CAST(amt AS DECIMAL(38,2))) as minimum,
+    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as q1,
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as median,
+    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as q3,
+    MAX(CAST(amt AS DECIMAL(38,2))) as maximum,
+    AVG(CAST(amt AS DECIMAL(38,2))) as mean,
+    STDDEV(CAST(amt AS DECIMAL(38,2))) as std_dev
+FROM (
     SELECT
-        MIN(CAST(amt AS DECIMAL(38,2))) as minimum,
-        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as q1,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as median,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY CAST(amt AS DECIMAL(38,2))) as q3,
-        MAX(CAST(amt AS DECIMAL(38,2))) as maximum,
-        AVG(CAST(amt AS DECIMAL(38,2))) as mean,
-        STDDEV(CAST(amt AS DECIMAL(38,2))) as std_dev
-    FROM (
-        SELECT
-            "accidentyeartotalincurredamount" as amt
-        FROM awsdatacatalog.syntheticgeneraldata_consume.policydata
-        WHERE lobcode = 'AUTO'
-    )
-    ```
+        "accidentyeartotalincurredamount" as amt
+    FROM awsdatacatalog.syntheticgeneraldata_consume.policydata
+    WHERE lobcode = 'AUTO'
+)
+```
