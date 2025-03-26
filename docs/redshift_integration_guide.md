@@ -24,6 +24,8 @@ You can use an [Amazon Redshift cluster](https://docs.aws.amazon.com/redshift/la
 
 Access to the data lake data from Amazon Redshift relies on [Amazon Redshift Spectrum](https://docs.aws.amazon.com/redshift/latest/dg/c-getting-started-using-spectrum.html#c-getting-started-using-spectrum-prerequisites), which requires that the workgroup or cluster be located in the same AWS Region as the data lake.
 
+You can also use AWS Glue ETL jobs to write data directly to Amazon Redshift managed storage through AWS Glue connections. AWS Glue connections rely on VPC connectivity between ETL jobs and your Amazon Redshift database. For connectivity setup details, refer to the section [Use Amazon Redshift for Consume Layer Storage](#use-amazon-redshift-for-consume-layer-storage).
+
 If you need to create an Amazon Redshift Serverless workgroup or cluster, follow the respective getting started guides:
 * [Get started with Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/gsg/new-user-serverless.html)
 * [Get started with Amazon Redshift provisioned](https://docs.aws.amazon.com/redshift/latest/gsg/new-user.html)
@@ -252,6 +254,123 @@ Example queries using Amazon Redshift SQL:
 * [Box Plot Amazon Redshift View](using_sql.md#box-plot-amazon-redshift-spectrum-view)
 
 
-## Use Amazon Redshift for Consume Layer Storage - WORK IN PROGRESS
+## Use Amazon Redshift for Consume Layer Storage
 
-![AWS Glue Data Connection to Amazon Redshift](./glue_connection_redshift.png)
+This section provides guidance for you to configure your Cleanse-to-Consume AWS Glue ETL job to write directly to Amazon Redshift Managed Storage in the Consume layer of your data lakehouse.
+
+This guide uses a Data Catalog Connection to provide the connectivity to Amazon Redshift, which automatically handles VPC connectivity and retrieves Amazon Redshift credentials from Secrets Manager.
+
+### Prerequisites
+
+* **You have a shared VPC for AWS Glue ETL jobs and Amazon Redshift database.**
+
+    You can use InsuranceLake to provision the VPC and create the Redshift workgroup or cluster in the VPC created by InsuranceLake. For more information on configuring a VPC deployment with InsuranceLake, refer to the [Application Configuration section of the Full Deployment guide](./full_deployment_guide.md#application-configuration).
+    
+    Alternatively you can bring your VPC, create connections to each subnet under [Data Catalog Connections](https://console.aws.amazon.com/gluestudio/home#/connectors), and connect your [AWS Glue ETL jobs](https://console.aws.amazon.com/gluestudio/home#/jobs) under `Job Details`, `Advanced Properties`, `Connections`.
+
+* **Your VPC must have sufficient IP addresses available for service endpoints and Amazon Redshift.**
+
+    InsuranceLake provisions your VPC using 3 Availability Zones, each with a public and private subnet. This divides the VPC subnet by 6, rounding down to the nearest power of 2. For example, if you specify a /24 VPC subnet in your InsuranceLake configuration, you will have 32 IP addresses in each private subnet.
+
+    AWS reserves 5 IP addresses in each subnet (1 network, 1 broadcast, 1 gateway, 2 reserved). In addition, InsuranceLake VPCs are automatically deployed with 5 service endpoints, each of which occupies another IP address. In the above example, the 32 IP address subnet will have 22 available IP addresses.
+
+    If you bring your own VPC, you may have different subnet divisions and service endpoints.
+
+    Amazon Redshift Serverless workgroups and clusters have varying IP address requirements depending on the RPUs. For details refer to [Considerations when using Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-usage-considerations.html).
+
+* **You have followed the [Amazon Redshift permissions](#amazon-redshift-permissions) instructions above.**
+
+    The AWS Glue ETL job IAM role must have access to the Amazon Redshift cluster or workgroup. You will need to grant additional permissions to the AWS Glue ETL job IAM role and should know the role name.
+
+    {: .note }
+    You do not need to grant access to the Data Catalog.
+
+### Connector setup
+
+1. In the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client), create a user for the Data Catalog connection with a password.
+
+    ```sql
+    CREATE USER glue_connector PASSWORD '<PASSWORD>';
+    ```
+
+1. Create and grant access to each database the ETL job will write to.
+
+    {: .note}
+    You must create each database in Amazon Redshift and grant permissions to the AWS Glue ETL job IAM role in advance of writing any data. The ETL job will create tables automatically.
+
+    ```sql
+    CREATE DATABASE "syntheticgeneraldata_consume";
+    GRANT CREATE ON DATABASE "syntheticgeneraldata_consume" TO "IAMR:dev-insurancelake-us-east-2-glue-role";
+    ```
+
+1. Create a Secrets Manager secret with the username and password you created in the prior steps.
+
+    Refer to [Creating a secret for Amazon Redshift database connection credentials](https://docs.aws.amazon.com/redshift/latest/mgmt/redshift-secrets-manager-integration-create.html) for specific instructions.
+
+    {: .important}
+    The AWS Glue ETL job IAM role must have access to the encryption key you choose. We recommend using the InsuranceLake KMS key, `dev-insurancelake-kms-key`, because the AWS Glue ETL job IAM role already has access to decrypt using this key.
+
+1. Grant the AWS Glue IAM role access to the **Secrets Manager secret**.
+
+    {: .note }
+    The AWS managed policy `AWSGlueServiceRole` does not include Secrets Manager permissions.
+
+    Use the following policy statement to add 
+    ```json
+    {
+        "Effect": "Allow",
+        "Action": "secretsmanager:GetSecretValue",
+        "Resource": "<ARN FOR SECRETS MANAGER SECRET>"
+    }
+    ```
+
+1. Attach the AWS managed policy `AmazonVPCFullAccess` to the AWS Glue ETL job IAM role to allow it to automatically configure the VPC.
+
+1. Create the Data Catalog Connection in the [AWS Glue console](https://console.aws.amazon.com/gluestudio/home#/connectors).
+
+    ![Data Catalog Connection to Amazon Redshift](glue_connection_redshift.png)
+
+    ![Data Catalog Connection settings](glue_connection_redshift_settings.png)
+
+### Cleanse-to-Consume ETL job modification
+
+In this step we modify the InsuranceLake Cleanse-to-Consume ETL job to write to Amazon Redshift Managed Storage instead of S3.
+
+1. Edit the [Cleanse-to-Consume AWS Glue script](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_cleanse_to_consume.py#L158) starting on line 158.
+
+    First, comment or remove lines 158 - 191 (in other words, the sections of the code that set the storage location, update the Data Catalog, purge the Amazon S3 path, set Spark write parameters, and write the data to Amazon S3).
+
+    Next, substitute the following code to write the data to Amazon Redshift using the Glue connection you created:
+
+    ```python
+            glueContext.write_dynamic_frame.from_jdbc_conf(
+                frame=dyf,
+                catalog_connection='Redshift connection',
+                connection_options={
+                    'database': args['target_database_name'].lower(),
+                    'dbtable': f'{target_table}',
+                },
+                redshift_tmp_dir=args['TempDir'],
+                transformation_ctx=f"{args['execution_id']}-redshiftwrite"
+            )
+    ```
+
+    For full details on connection options refer to [Amazon Redshift connection option reference](https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-redshift.html#w9aac67c11c24b8c21c15) and [JDBC connection option reference](https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-connect-jdbc-home.html#aws-glue-programming-etl-connect-jdbc).
+
+1. Using CDK, redeploy the AWS Glue stack.
+
+    ```bash
+    cdk deploy Dev-InsuranceLakeEtlPipeline/Dev/InsuranceLakeEtlGlue
+    ```
+
+### Query Amazon Redshift Consume layer
+
+Rerun the [PolicyData workflow](quickstart.md#try-out-the-etl-process) to publish data to Amazon Redshift Managed Storage and wait for the job to complete.
+
+Then use the following query in the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client) to check the data in the Consume layer:
+
+```sql
+select * from syntheticgeneraldata_consume.public.policydata limit 100;
+```
+
+![Amazon Redshift Managed Storage Consume layer test](redshift_consume_layer_test.png)
