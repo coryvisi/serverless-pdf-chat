@@ -258,7 +258,8 @@ Example queries using Amazon Redshift SQL:
 
 This section provides guidance for you to configure your Cleanse-to-Consume AWS Glue ETL job to write directly to Amazon Redshift Managed Storage in the Consume layer of your data lakehouse.
 
-This guide uses a Data Catalog Connection to provide the connectivity to Amazon Redshift, which automatically handles VPC connectivity and retrieves Amazon Redshift credentials from Secrets Manager.
+This guide uses a Data Catalog Connection to provide the connectivity to Amazon Redshift, which automatically provisions the VPC and retrieves Amazon Redshift credentials from Secrets Manager.
+
 
 ### Prerequisites
 
@@ -287,7 +288,7 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
 
 ### Connector setup
 
-1. In the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client), create a user for the Data Catalog connection with a password.
+1. In the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client), create a user for the Data Catalog Connection with a password.
 
     ```sql
     CREATE USER glue_connector PASSWORD '<PASSWORD>';
@@ -315,7 +316,7 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
     {: .note }
     The AWS managed policy `AWSGlueServiceRole` does not include Secrets Manager permissions.
 
-    Use the following policy statement to add 
+    Use the following policy statement as an inline policy for the IAM role:
     ```json
     {
         "Effect": "Allow",
@@ -324,13 +325,20 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
     }
     ```
 
-1. Attach the AWS managed policy `AmazonVPCFullAccess` to the AWS Glue ETL job IAM role to allow it to automatically configure the VPC.
+1. Attach the AWS managed policy `AmazonVPCFullAccess` to the AWS Glue ETL job IAM role to allow it to automatically provision the VPC.
 
 1. Create the Data Catalog Connection in the [AWS Glue console](https://console.aws.amazon.com/gluestudio/home#/connectors).
 
     ![Data Catalog Connection to Amazon Redshift](glue_connection_redshift.png)
 
+    {: .note}
+    The database name you choose in the connection details will not be used by the ETL workflow. Any valid database will work.
+
     ![Data Catalog Connection settings](glue_connection_redshift_settings.png)
+
+    {: .important }
+    We will use the name of the Data Catalog Connection in the [Cleanse-to-Consume ETL job modification](#cleanse-to-consume-etl-job-modification) steps.
+
 
 ### Cleanse-to-Consume ETL job modification
 
@@ -340,9 +348,13 @@ In this step we modify the InsuranceLake Cleanse-to-Consume ETL job to write to 
 
     First, comment or remove lines 158 - 191 (in other words, the sections of the code that set the storage location, update the Data Catalog, purge the Amazon S3 path, set Spark write parameters, and write the data to Amazon S3).
 
-    Next, substitute the following code to write the data to Amazon Redshift using the Glue connection you created:
+    Next, add the following code to write data directly to Amazon Redshift.
+
+    {: .important}
+    Change the catalog_connection parameter to match the Data Catalog Connection name created in the [Connector setup](#connector-setup).
 
     ```python
+            dyf = DynamicFrame.fromDF(filtered_df, glueContext, f"{args['execution_id']}-convertforredshift")
             glueContext.write_dynamic_frame.from_jdbc_conf(
                 frame=dyf,
                 catalog_connection='Redshift connection',
@@ -362,6 +374,7 @@ In this step we modify the InsuranceLake Cleanse-to-Consume ETL job to write to 
     ```bash
     cdk deploy Dev-InsuranceLakeEtlPipeline/Dev/InsuranceLakeEtlGlue
     ```
+
 
 ### Query Amazon Redshift Consume layer
 
