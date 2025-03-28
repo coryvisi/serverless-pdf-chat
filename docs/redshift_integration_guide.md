@@ -18,13 +18,21 @@ This section provides instructions for configuring [Amazon Redshift](https://doc
 {: toc }
 
 
-## Setup
+## Amazon Redshift integration options
 
 You can use an [Amazon Redshift cluster](https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html) or [Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-whatis.html) workgroup to directly query Data Catalog tables. You can optionally register databases in the Data Catalog created by InsuranceLake as Amazon Redshift external schemas, and create materialized views for improved query performance from Amazon Redshift's optimized compute engine.
 
 Access to the data lake data from Amazon Redshift relies on [Amazon Redshift Spectrum](https://docs.aws.amazon.com/redshift/latest/dg/c-getting-started-using-spectrum.html#c-getting-started-using-spectrum-prerequisites), which requires that the workgroup or cluster be located in the same AWS Region as the data lake.
 
 You can also use AWS Glue ETL jobs to write data directly to Amazon Redshift managed storage through AWS Glue connections. AWS Glue connections rely on VPC connectivity between ETL jobs and your Amazon Redshift database. For connectivity setup details, refer to the section [Use Amazon Redshift for Consume Layer Storage](#use-amazon-redshift-for-consume-layer-storage).
+
+
+## Common setup
+
+This section covers steps that are common to all 3 methods of integrating with Amazon Redshift.
+
+
+### Cluster or serverless workgroup
 
 If you need to create an Amazon Redshift Serverless workgroup or cluster, follow the respective getting started guides:
 * [Get started with Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/gsg/new-user-serverless.html)
@@ -35,33 +43,7 @@ For the steps below, ensure you can connect to Amazon Redshift with **superuser 
 Follow the [CDK Instructions](cdk_instructions.md) to setup for local deployment.
 
 
-### Data Lake permissions
-
-Your Amazon Redshift workgroup or cluster must have the correct permissions to access the data lake. InsuranceLake deployment creates a customer-managed IAM policy that you can use to provide this access.
-
-1. Identify the default IAM role used by the cluster or the workgroup's namespace in the [Amazon Redshift management console](https://console.aws.amazon.com/redshiftv2).
-    ![Example Amazon Redshift default IAM role](redshift-iam-role-example.png)
-
-1. Select the IAM role name to open it in AWS Console.
-
-1. Select `Add permissions`, then `Attach policies`.
-
-1. Search for the InsuranceLake customer-managed policy, which follows the naming convention `<environment>-insurancelake-<region>-consumer-policy`, and select the checkbox to the left of the InsuranceLake.
-
-    1. If you do not know the name of the policy, you can find it in the [CloudFormation console](https://console.aws.amazon.com/cloudformation).
-    1. Select the InsuranceLake AWS Glue stack, `<Environment>-InsuranceLakeEtlGlue`.
-    1. Select the `Outputs` tab.
-    1. Find the value for the export named `<Environment>InsuranceLakeConsumerPolicy`. This is the customer-managed policy to attach.
-
-1. Attach InsuranceLake customer-managed policy to the role by selecting `Add permissions`.
-
-    {: .important }
-    This policy grants the IAM role permissions to decrypt using the InsuranceLake KMS key, and read from InsuranceLake Amazon S3 buckets (Cleanse and Consume) and Data Catalog.
-
-    ![Attach Consumer Policy to Amazon Redshift Role](iam_attach_consumer_policy.png)
-
-
-### Amazon Redshift permissions
+### Amazon Redshift permissions for AWS Glue
 
 AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshift resources and execute SQL statements. Follow the below steps to add these permissions to the IAM role used by ETL jobs by modifying the InsuranceLake AWS Glue stack.
 
@@ -137,6 +119,34 @@ AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshi
     ```
 
 
+## Data lake views in Amazon Redshift
+
+### Data lake permissions
+
+Your Amazon Redshift workgroup or cluster must have the correct permissions to access the data lake. InsuranceLake deployment creates a customer-managed IAM policy that you can use to provide this access.
+
+1. Identify the default IAM role used by the cluster or the workgroup's namespace in the [Amazon Redshift management console](https://console.aws.amazon.com/redshiftv2).
+    ![Example Amazon Redshift default IAM role](redshift-iam-role-example.png)
+
+1. Select the IAM role name to open it in AWS Console.
+
+1. Select `Add permissions`, then `Attach policies`.
+
+1. Search for the InsuranceLake customer-managed policy, which follows the naming convention `<environment>-insurancelake-<region>-consumer-policy`, and select the checkbox to the left of the InsuranceLake.
+
+    1. If you do not know the name of the policy, you can find it in the [CloudFormation console](https://console.aws.amazon.com/cloudformation).
+    1. Select the InsuranceLake AWS Glue stack, `<Environment>-InsuranceLakeEtlGlue`.
+    1. Select the `Outputs` tab.
+    1. Find the value for the export named `<Environment>InsuranceLakeConsumerPolicy`. This is the customer-managed policy to attach.
+
+1. Attach InsuranceLake customer-managed policy to the role by selecting `Add permissions`.
+
+    {: .important }
+    This policy grants the IAM role permissions to decrypt using the InsuranceLake KMS key, and read from InsuranceLake Amazon S3 buckets (Cleanse and Consume) and Data Catalog.
+
+    ![Attach Consumer Policy to Amazon Redshift Role](iam_attach_consumer_policy.png)
+
+
 ### Database connection parameters
 
 The Cleanse-to-Consume AWS Glue job requires extra parameters to create views in Amazon Redshift.
@@ -191,8 +201,32 @@ Follow the steps below to add these parameters to the InsuranceLake data pipelin
     cdk deploy Dev-InsuranceLakeEtlPipeline/Dev/InsuranceLakeEtlStepFunctions
     ```
 
+### Query data lake views from Amazon Redshift
 
-## Create an external schema
+{: .note}
+These instructions assume you have completed the [Quickstart guide](quickstart.md) and loaded the provided sample data into Data Catalog tables.
+
+1. Access the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client).
+
+1. In the tree-view pane, navigate to external databases under the `awsdatacatalog` schema. Notice the Data Catalog databases and tables like `syntheticgeneraldata` and `policydata`.
+
+1. If you see the error, `The current user is not authenticated with IAM credentials`, edit the connection by clicking the vertical ellipsis next to the Amazon Redshift connection.
+
+    1. Choose `Temporary credentials using your IAM identity`, or `Federated user` under `Other ways to connect`.
+    1. Select `Create connection`.
+
+1. Run the following query. Notice that the dataset is the same as [what was shown in Athena](quickstart.md#try-out-the-etl-process).
+    ```sql
+    SELECT * FROM awsdatacatalog.syntheticgeneraldata_consume.policydata LIMIT 100;
+    ```
+
+
+## Materialized views in Amazon Redshift
+
+Materialized views in Redshift require the same steps as [data lake views in Amazon Redshift](#data-lake-views-in-amazon-redshift).
+
+
+### Create an external schema
 
 If you want to create materialized views in Amazon Redshift that use data lake data, follow these steps to create an external schema. **You must create an external schema for each data lake database you want to access.**
 
@@ -228,29 +262,15 @@ Ensure you have successfully run a workflow to create each database before runni
 For more details and examples of creating materialized views using the external schemas created above, see the [Amazon Redshift SQL](using_sql.md#amazon-redshift-sql) section of the InsuranceLake Cleanse-to-Consume SQL Usage Documentation.
 
 
-## Query data lake data from Amazon Redshift
+## Query materialized views from Amazon Redshift
 
 {: .note}
 These instructions assume you have completed the [Quickstart guide](quickstart.md) and loaded the provided sample data into Data Catalog tables.
 
-1. Access the [Amazon Redshift query console](https://console.aws.amazon.com/sqlworkbench/home#/client).
-
-1. In the tree-view pane, navigate to external databases under the `awsdatacatalog` schema. Notice the Data Catalog databases and tables like `syntheticgeneraldata` and `policydata`.
-
-1. If you see the error, `The current user is not authenticated with IAM credentials`, edit the connection by clicking the vertical ellipsis next to the Amazon Redshift connection.
-
-    1. Choose `Temporary credentials using your IAM identity`, or `Federated user` under `Other ways to connect`.
-    1. Select `Create connection`.
-
-1. Run the following query. Notice that the dataset is the same as [what was shown in Athena](quickstart.md#try-out-the-etl-process).
-    ```sql
-    SELECT * FROM awsdatacatalog.syntheticgeneraldata_consume.policydata LIMIT 100;
-    ```
-
 1. Trigger the `CombinedData` demonstration workflow.
 
     1. Copy and paste the following text into a local file, `trigger.csv` (the timestamp value is not important).
-        ```txt
+        ```csv
         Description,Timestamp
         Demonstration run,2025-03-28 12:00:00
         ```
@@ -260,11 +280,13 @@ These instructions assume you have completed the [Quickstart guide](quickstart.m
         aws s3 cp trigger.csv s3://<COLLECT BUCKET>/SyntheticGeneralData/CombinedData/
         ```
 
-1. Use the Step Functions State Machine console to monitor the progress of the workflow.
+1. Use the [Step Functions console](https://console.aws.amazon.com/states/home) to monitor the progress of the workflow.
 
-1. When the workflow completes, refresh the tree view pane using the circular arrows icon, and notice that you now have 2 views in the `dev` database, `public` schema.
+1. When the workflow completes, access the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client).
 
-1. Run the following SQL to check the contents of the 2 new views:
+1. Refresh the tree view pane using the circular arrows icon, and notice that you now have 2 views in the `dev` database, `public` schema.
+
+1. Run the following Amazon Redshift SQL to check the contents of the 2 new views:
     ```sql
     select * from general_insurance_redshift_spectrum limit 100;
     select * from general_insurance_redshift_materialized limit 100;
@@ -277,7 +299,7 @@ Other example queries using Amazon Redshift SQL:
 * [Box Plot Amazon Redshift View](using_sql.md#box-plot-amazon-redshift-spectrum-view)
 
 
-## Use Amazon Redshift for Consume Layer Storage
+## Use Amazon Redshift for Consume layer storage
 
 This section provides guidance for you to configure your Cleanse-to-Consume AWS Glue ETL job to write directly to Amazon Redshift Managed Storage in the Consume layer of your data lakehouse.
 
@@ -304,10 +326,8 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
 
 * **You have followed the [Amazon Redshift permissions](#amazon-redshift-permissions) instructions above.**
 
-    The AWS Glue ETL job IAM role must have access to the Amazon Redshift cluster or workgroup. You will need to grant additional permissions to the AWS Glue ETL job IAM role and should know the role name.
+    The AWS Glue ETL job IAM role must have access to the Amazon Redshift cluster or workgroup. You will need to grant additional permissions to the AWS Glue ETL job IAM role and should know the role name. You do not need to grant access to the Data Catalog.
 
-    {: .note }
-    You do not need to grant access to the Data Catalog.
 
 ### Connector setup
 
@@ -334,7 +354,7 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
     {: .important}
     The AWS Glue ETL job IAM role must have access to the encryption key you choose. We recommend using the InsuranceLake KMS key, `dev-insurancelake-kms-key`, because the AWS Glue ETL job IAM role already has access to decrypt using this key.
 
-1. Grant the AWS Glue IAM role access to the **Secrets Manager secret**.
+1. Grant the AWS Glue IAM role access to the Secrets Manager secret you just created.
 
     {: .note }
     The AWS managed policy `AWSGlueServiceRole` does not include Secrets Manager permissions.
