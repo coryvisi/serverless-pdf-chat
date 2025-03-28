@@ -162,7 +162,7 @@ The Cleanse-to-Consume AWS Glue job requires extra parameters to create views in
 1. Add two additional arguments to `glue_cleanse_task` starting at Line 164 in [step_functions_stack.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/step_functions_stack.py#L164), the InsuranceLake Step Functions stack.
 
     {: .note}
-    AWS Glue job parameters can be specified in several ways: in a `StartJobRun` API call, SDK command, or CLI command; by modifying the AWS Glue ETL job parameters (under Job details, Advanced properties); and by modifying the task node `DevInsuranceLakeCleanseGlueJobTask` in the InsuranceLake Step Function State Machine definition. **We recommend modifying the Step Functions State Machine and using CDK to deploy the change.**
+    AWS Glue job parameters can be specified in several ways: in a `StartJobRun` API call, SDK command, or CLI command; by modifying the AWS Glue ETL job parameters (under `Job details`, `Advanced properties`); and by modifying the task node `DevInsuranceLakeCleanseGlueJobTask` in the InsuranceLake Step Function State Machine definition. **We recommend modifying the Step Functions State Machine and using CDK to deploy the change.**
 
     {: .important}
     Modify the below example code to use the identified parameters from the prior step.
@@ -335,9 +335,6 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
     The database name you choose in the connection details will not be used by the ETL workflow. Any valid database will work.
 
     ![Data Catalog Connection settings](glue_connection_redshift_settings.png)
-
-    {: .important }
-    We will use the name of the Data Catalog Connection in the [Cleanse-to-Consume ETL job modification](#cleanse-to-consume-etl-job-modification) steps.
 
 
 ### Cleanse-to-Consume ETL job modification
