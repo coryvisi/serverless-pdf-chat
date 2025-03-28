@@ -2,7 +2,7 @@
 title: Amazon Redshift Integration Guide
 parent: Developer Documentation
 nav_order: 4
-last_modified_date: 2025-03-24
+last_modified_date: 2025-03-28
 ---
 
 # Amazon Redshift Integration Guide
@@ -31,6 +31,8 @@ If you need to create an Amazon Redshift Serverless workgroup or cluster, follow
 * [Get started with Amazon Redshift provisioned](https://docs.aws.amazon.com/redshift/latest/gsg/new-user.html)
 
 For the steps below, ensure you can connect to Amazon Redshift with **superuser privileges**. You do not need an Amazon Redshift user associated with an IAM identity for the below steps.
+
+Follow the [CDK Instructions](cdk_instructions.md) to setup for local deployment.
 
 
 ### Data Lake permissions
@@ -145,6 +147,10 @@ The Cleanse-to-Consume AWS Glue job requires extra parameters to create views in
 |redshift_workgroup_name    |Required for Amazon Redshift Serverless |Workgroup name
 |redshift_cluster_id    |Required for Amazon Redshift provisioned    |Cluster ID
 
+AWS Glue job parameters can be specified in several ways: in a `StartJobRun` API call, SDK command, or CLI command; by modifying the AWS Glue ETL job parameters (under `Job details`, `Advanced properties`); and by modifying the task node `DevInsuranceLakeCleanseGlueJobTask` in the InsuranceLake Step Function State Machine definition. **We recommend modifying the Step Functions State Machine and using CDK to deploy the change.**
+
+Follow the steps below to add these parameters to the InsuranceLake data pipeline.
+
 1. Prepare the set of parameters. Ensure the database, workgroup name, and cluster ID match the names in your environment.
 
     * For Amazon Redshift Serverless, use `redshift_database` and `redshift_workgroup_name`. Example follows.
@@ -160,9 +166,6 @@ The Cleanse-to-Consume AWS Glue job requires extra parameters to create views in
         ```
 
 1. Add two additional arguments to `glue_cleanse_task` starting at Line 164 in [step_functions_stack.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/step_functions_stack.py#L164), the InsuranceLake Step Functions stack.
-
-    {: .note}
-    AWS Glue job parameters can be specified in several ways: in a `StartJobRun` API call, SDK command, or CLI command; by modifying the AWS Glue ETL job parameters (under `Job details`, `Advanced properties`); and by modifying the task node `DevInsuranceLakeCleanseGlueJobTask` in the InsuranceLake Step Function State Machine definition. **We recommend modifying the Step Functions State Machine and using CDK to deploy the change.**
 
     {: .important}
     Modify the below example code to use the identified parameters from the prior step.
@@ -225,31 +228,51 @@ Ensure you have successfully run a workflow to create each database before runni
 For more details and examples of creating materialized views using the external schemas created above, see the [Amazon Redshift SQL](using_sql.md#amazon-redshift-sql) section of the InsuranceLake Cleanse-to-Consume SQL Usage Documentation.
 
 
-## Query InsuranceLake
+## Query data lake data from Amazon Redshift
 
 {: .note}
 These instructions assume you have completed the [Quickstart guide](quickstart.md) and loaded the provided sample data into Data Catalog tables.
 
 1. Access the [Amazon Redshift query console](https://console.aws.amazon.com/sqlworkbench/home#/client).
 
-1. If you have just created your Redshift Serverless workgroup or cluster, you will be prompted for your connection method.
-    *** Ensure you are connecting as a superuser that can grant permissions, either a Federated user, or AWS Secrets Manager, probably replace this section, and move to Setup
-
-"The current user is not authenticated with IAM credentials"
-Edit the connection and choose Temporary credentials using your IAM identity
-    MUST CONNECT WITH IAM USER, or have an IAM user associated with Redshift user to connect to Data Catalog
-
-    1. Choose `Federated user` under `Other ways to connect`.
-    1. Select `Create connection`.
-
 1. In the tree-view pane, navigate to external databases under the `awsdatacatalog` schema. Notice the Data Catalog databases and tables like `syntheticgeneraldata` and `policydata`.
 
-1. Run the following query.
+1. If you see the error, `The current user is not authenticated with IAM credentials`, edit the connection by clicking the vertical ellipsis next to the Amazon Redshift connection.
+
+    1. Choose `Temporary credentials using your IAM identity`, or `Federated user` under `Other ways to connect`.
+    1. Select `Create connection`.
+
+1. Run the following query. Notice that the dataset is the same as [what was shown in Athena](quickstart.md#try-out-the-etl-process).
     ```sql
     SELECT * FROM awsdatacatalog.syntheticgeneraldata_consume.policydata LIMIT 100;
     ```
 
-Example queries using Amazon Redshift SQL:
+1. Trigger the `CombinedData` demonstration workflow.
+
+    1. Copy and paste the following text into a local file, `trigger.csv` (the timestamp value is not important).
+        ```txt
+        Description,Timestamp
+        Demonstration run,2025-03-28 12:00:00
+        ```
+
+    1. Run the following Amazon S3 copy command, substituting the S3 path for your InsuranceLake Collect bucket.
+        ```bash
+        aws s3 cp trigger.csv s3://<COLLECT BUCKET>/SyntheticGeneralData/CombinedData/
+        ```
+
+1. Use the Step Functions State Machine console to monitor the progress of the workflow.
+
+1. When the workflow completes, refresh the tree view pane using the circular arrows icon, and notice that you now have 2 views in the `dev` database, `public` schema.
+
+1. Run the following SQL to check the contents of the 2 new views:
+    ```sql
+    select * from general_insurance_redshift_spectrum limit 100;
+    select * from general_insurance_redshift_materialized limit 100;
+    ```
+
+    ![Amazon Redshift data lake views test](redshift_view_test.png)
+
+Other example queries using Amazon Redshift SQL:
 * [Simple Amazon Redshift Materialized View](using_sql.md#simple-amazon-redshift-materialized-view)
 * [Box Plot Amazon Redshift View](using_sql.md#box-plot-amazon-redshift-spectrum-view)
 
