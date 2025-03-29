@@ -20,40 +20,42 @@ This section provides instructions for configuring [Amazon Redshift](https://doc
 
 ## Amazon Redshift integration options
 
-You can use an [Amazon Redshift cluster](https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html) or [Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-whatis.html) workgroup to directly query Data Catalog tables. You can optionally register databases in the Data Catalog created by InsuranceLake as Amazon Redshift external schemas, and create materialized views for improved query performance from Amazon Redshift's optimized compute engine.
+You can use an [Amazon Redshift provisioned cluster](https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html) or an [Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-whatis.html) workgroup to directly query Data Catalog tables. You can optionally register databases in the Data Catalog created by InsuranceLake as Amazon Redshift external schemas, and create materialized views for improved query performance from Amazon Redshift's optimized compute engine.
 
 Access to the data lake data from Amazon Redshift relies on [Amazon Redshift Spectrum](https://docs.aws.amazon.com/redshift/latest/dg/c-getting-started-using-spectrum.html#c-getting-started-using-spectrum-prerequisites), which requires that the workgroup or cluster be located in the same AWS Region as the data lake.
 
-You can also use AWS Glue ETL jobs to write data directly to Amazon Redshift managed storage through AWS Glue connections. AWS Glue connections rely on VPC connectivity between ETL jobs and your Amazon Redshift database. For connectivity setup details, refer to the section [Use Amazon Redshift for Consume Layer Storage](#use-amazon-redshift-for-consume-layer-storage).
+You can also use AWS Glue ETL jobs to write data directly to Amazon Redshift Managed Storage through AWS Glue connections. AWS Glue connections rely on VPC connectivity between ETL jobs and your Amazon Redshift database.
+
+The following sections cover the setup and testing of each integration option. Some setup steps are common to multiple integration options, which will be identified in the guide.
 
 
 ## Common setup
 
-This section covers steps that are common to all 3 methods of integrating with Amazon Redshift.
+This section covers steps that are common to all 3 methods of integration with Amazon Redshift.
 
 
-### Cluster or serverless workgroup
+### Provisioned cluster or serverless workgroup
 
 If you need to create an Amazon Redshift Serverless workgroup or cluster, follow the respective getting started guides:
 * [Get started with Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/gsg/new-user-serverless.html)
-* [Get started with Amazon Redshift provisioned](https://docs.aws.amazon.com/redshift/latest/gsg/new-user.html)
+* [Get started with Amazon Redshift Provisioned](https://docs.aws.amazon.com/redshift/latest/gsg/new-user.html)
 
-For the steps below, ensure you can connect to Amazon Redshift with **superuser privileges**. You do not need an Amazon Redshift user associated with an IAM identity for the below steps.
+Ensure you can connect to Amazon Redshift with **superuser privileges**. You do not need an Amazon Redshift user associated with an IAM identity unless specifically indicated.
 
-Follow the [CDK Instructions](cdk_instructions.md) to setup for local deployment.
+Ensure you have followed the [CDK Instructions](cdk_instructions.md) for local deployment setup.
 
 
 ### Amazon Redshift permissions for AWS Glue
 
 AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshift resources and execute SQL statements. Follow the below steps to add these permissions to the IAM role used by ETL jobs by modifying the InsuranceLake AWS Glue stack.
 
-1. Add the following policy document to `get_glue_role` starting at Line 502 in [glue_stack.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_stack.py#L502), the InsuranceLake AWS Glue stack.
+1. Add the following policy document to `get_glue_role` starting at line 502 in [glue_stack.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_stack.py#L502), the InsuranceLake AWS Glue stack.
 
     {: .important}
     Modify the below code to use the correct ARN for your Amazon Redshift Serverless workgroup or cluster.
-    ARNs for Amazon Redshift serverless workgroups follow the convention:
+    ARNs for Amazon Redshift Serverless workgroups follow the convention:
     `arn:aws:redshift-serverless:<REGION>:<ACCOUNT ID>:workgroup/<WORKGROUP UUID>`.
-    ARNs for Amazon Redshift clusters follow the convention: `arn:aws:redshift:<REGION>:<ACCOUNT ID>:cluster:<CLUSTER ID>` and `arn:aws:redshift:<REGION>:<ACCOUNT ID>:dbname:<CLUSTER ID>/*`.
+    ARNs for Amazon Redshift Provisioned clusters follow the convention: `arn:aws:redshift:<REGION>:<ACCOUNT ID>:cluster:<CLUSTER ID>` and `arn:aws:redshift:<REGION>:<ACCOUNT ID>:dbname:<CLUSTER ID>/*`.
 
     ```python
                     'RedshiftAccess':
@@ -107,7 +109,7 @@ AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshi
 1. Run the following SQL to grant the InsuranceLake AWS Glue ETL jobs role access to your Amazon Redshift database and the Data Catalog through Amazon Redshift Spectrum.
 
     {: .note }
-    In the below SQL, we explicitly create the Redshift user for the AWS Glue job IAM role so the `GRANT` statements succeed without having to run the ETL jobs once to create the user automatically (which would fail due to missing permissions).
+    In the below SQL, we explicitly create the Amazon Redshift user for the AWS Glue job IAM role so the `GRANT` statements succeed without having to run the ETL jobs once to create the user automatically (which would fail due to missing permissions).
 
     {: .important }
     Modify the below SQL statements to use the correct AWS Glue role name and Amazon Redshift database name.
@@ -141,7 +143,7 @@ Your Amazon Redshift workgroup or cluster must have the correct permissions to a
 
 1. Attach InsuranceLake customer-managed policy to the role by selecting `Add permissions`.
 
-    {: .important }
+    {: .warning }
     This policy grants the IAM role permissions to decrypt using the InsuranceLake KMS key, and read from InsuranceLake Amazon S3 buckets (Cleanse and Consume) and Data Catalog.
 
     ![Attach Consumer Policy to Amazon Redshift Role](iam_attach_consumer_policy.png)
@@ -155,7 +157,7 @@ The Cleanse-to-Consume AWS Glue job requires extra parameters to create views in
 |---    |-- |--
 |redshift_database  |Always required    |Database name
 |redshift_workgroup_name    |Required for Amazon Redshift Serverless |Workgroup name
-|redshift_cluster_id    |Required for Amazon Redshift provisioned    |Cluster ID
+|redshift_cluster_id    |Required for Amazon Redshift Provisioned    |Cluster ID
 
 AWS Glue job parameters can be specified in several ways: in a `StartJobRun` API call, SDK command, or CLI command; by modifying the AWS Glue ETL job parameters (under `Job details`, `Advanced properties`); and by modifying the task node `DevInsuranceLakeCleanseGlueJobTask` in the InsuranceLake Step Function State Machine definition. **We recommend modifying the Step Functions State Machine and using CDK to deploy the change.**
 
@@ -163,19 +165,19 @@ Follow the steps below to add these parameters to the InsuranceLake data pipelin
 
 1. Prepare the set of parameters. Ensure the database, workgroup name, and cluster ID match the names in your environment.
 
-    * For Amazon Redshift Serverless, use `redshift_database` and `redshift_workgroup_name`. Example follows.
+    * For a serverless workgroup, use `redshift_database` and `redshift_workgroup_name`. Example follows.
         ```
         --redshift_database=dev
         --redshift_workgroup_name=default
         ```
 
-    * For an Amazon Redshift provisioned cluster, use `redshift_database` and `redshift_cluster_id`. Example follows.
+    * For a provisioned cluster, use `redshift_database` and `redshift_cluster_id`. Example follows.
         ```
         --redshift_database=dev
         --redshift_cluster_id=redshift-cluster-1
         ```
 
-1. Add two additional arguments to `glue_cleanse_task` starting at Line 164 in [step_functions_stack.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/step_functions_stack.py#L164), the InsuranceLake Step Functions stack.
+1. Add two additional arguments to `glue_cleanse_task` starting at line 164 in [step_functions_stack.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/step_functions_stack.py#L164), the InsuranceLake Step Functions stack.
 
     {: .important}
     Modify the below example code to use the identified parameters from the prior step.
@@ -208,7 +210,7 @@ These instructions assume you have completed the [Quickstart guide](quickstart.m
 
 1. Access the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client).
 
-1. In the tree-view pane, navigate to external databases under the `awsdatacatalog` schema. Notice the Data Catalog databases and tables like `syntheticgeneraldata` and `policydata`.
+1. In the tree-view pane, expand `external databases` and the `awsdatacatalog` schema. Notice the Data Catalog databases and tables like `syntheticgeneraldata` and `policydata`.
 
 1. If you see the error, `The current user is not authenticated with IAM credentials`, edit the connection by clicking the vertical ellipsis next to the Amazon Redshift connection.
 
@@ -223,14 +225,14 @@ These instructions assume you have completed the [Quickstart guide](quickstart.m
 
 ## Materialized views in Amazon Redshift
 
-Materialized views in Redshift require the same steps as [data lake views in Amazon Redshift](#data-lake-views-in-amazon-redshift).
+Materialized views of data lake data in Amazon Redshift **require the same steps as [data lake views in Amazon Redshift](#data-lake-views-in-amazon-redshift)**, as well as the steps to create an external schema and grant permissions below.
 
 
 ### Create an external schema
 
 If you want to create materialized views in Amazon Redshift that use data lake data, follow these steps to create an external schema. **You must create an external schema for each data lake database you want to access.**
 
-{: .warning}
+{: .important}
 Ensure you have successfully run a workflow to create each database before running these commands, or that you have manually created the databases. The Data Catalog database must exist for the commands to work.
 
 1. Create an external schema based on the InsuranceLake database in the Data Catalog. This query creates an external schema `datalake_syntheticgeneraldata_consume`. The name following the `DATABASE` identifier must match the name of the Data Catalog database created by InsuranceLake.
@@ -248,7 +250,7 @@ Ensure you have successfully run a workflow to create each database before runni
 1. Grant the AWS Glue role access to the external schema.
 
     {: .note}
-    See the steps in [Amazon Redshift grants](#amazon-redshift-grants) to identify the correct IAM role name.
+    See the steps in [Amazon Redshift permissions for AWS Glue](#amazon-redshift-permissions-for-aws-glue) to identify the correct IAM role name and modify the below SQL accordingly.
 
     ```sql
     GRANT USAGE ON SCHEMA "datalake_syntheticgeneraldata_consume" TO "IAMR:dev-insurancelake-us-east-2-glue-role";
@@ -262,7 +264,7 @@ Ensure you have successfully run a workflow to create each database before runni
 For more details and examples of creating materialized views using the external schemas created above, see the [Amazon Redshift SQL](using_sql.md#amazon-redshift-sql) section of the InsuranceLake Cleanse-to-Consume SQL Usage Documentation.
 
 
-## Query materialized views from Amazon Redshift
+### Query materialized views from Amazon Redshift
 
 {: .note}
 These instructions assume you have completed the [Quickstart guide](quickstart.md) and loaded the provided sample data into Data Catalog tables.
@@ -270,7 +272,7 @@ These instructions assume you have completed the [Quickstart guide](quickstart.m
 1. Trigger the `CombinedData` demonstration workflow.
 
     1. Copy and paste the following text into a local file, `trigger.csv` (the timestamp value is not important).
-        ```csv
+        ```
         Description,Timestamp
         Demonstration run,2025-03-28 12:00:00
         ```
@@ -284,7 +286,7 @@ These instructions assume you have completed the [Quickstart guide](quickstart.m
 
 1. When the workflow completes, access the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client).
 
-1. Refresh the tree view pane using the circular arrows icon, and notice that you now have 2 views in the `dev` database, `public` schema.
+1. Refresh the tree-view pane using the circular arrows icon, and notice that you now have 2 views in the `dev` database, `public` schema.
 
 1. Run the following Amazon Redshift SQL to check the contents of the 2 new views:
     ```sql
@@ -318,15 +320,15 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
 
     InsuranceLake provisions your VPC using 3 Availability Zones, each with a public and private subnet. This divides the VPC subnet by 6, rounding down to the nearest power of 2. For example, if you specify a /24 VPC subnet in your InsuranceLake configuration, you will have 32 IP addresses in each private subnet.
 
-    AWS reserves 5 IP addresses in each subnet (1 network, 1 broadcast, 1 gateway, 2 reserved). In addition, InsuranceLake VPCs are automatically deployed with 5 service endpoints, each of which occupies another IP address. In the above example, the 32 IP address subnet will have 22 available IP addresses.
+    AWS reserves 5 IP addresses in each subnet (1 network, 1 broadcast, 1 gateway, and 2 reserved). In addition, InsuranceLake VPCs are automatically deployed with 5 service endpoints, each of which occupies another IP address. In the above example, the 32 IP address subnet will have 22 available IP addresses.
 
     If you bring your own VPC, you may have different subnet divisions and service endpoints.
 
     Amazon Redshift Serverless workgroups and clusters have varying IP address requirements depending on the RPUs. For details refer to [Considerations when using Amazon Redshift Serverless](https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-usage-considerations.html).
 
-* **You have followed the [Amazon Redshift permissions](#amazon-redshift-permissions) instructions above.**
+* **You have followed the [Amazon Redshift permissions for AWS Glue](#amazon-redshift-permissions-for-aws-glue) instructions above.**
 
-    The AWS Glue ETL job IAM role must have access to the Amazon Redshift cluster or workgroup. You will need to grant additional permissions to the AWS Glue ETL job IAM role and should know the role name. You do not need to grant access to the Data Catalog.
+    The AWS Glue ETL job IAM role must have access to the Amazon Redshift cluster or workgroup. In the following steps, you will need to grant additional permissions to the AWS Glue ETL job IAM role and should know the role name. You do not need to grant access to the Data Catalog.
 
 
 ### Connector setup
@@ -382,11 +384,11 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
 
 ### Cleanse-to-Consume ETL job modification
 
-In this step we modify the InsuranceLake Cleanse-to-Consume ETL job to write to Amazon Redshift Managed Storage instead of S3.
+In this step we modify the InsuranceLake Cleanse-to-Consume ETL job to write to Amazon Redshift Managed Storage instead of Amazon S3.
 
 1. Edit the [Cleanse-to-Consume AWS Glue script](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_cleanse_to_consume.py#L158) starting on line 158.
 
-    First, comment or remove lines 158 - 191 (in other words, the sections of the code that set the storage location, update the Data Catalog, purge the Amazon S3 path, set Spark write parameters, and write the data to Amazon S3).
+    First, comment or remove lines 158 - 191 (in other words, the sections of the code that set the storage location, update the Data Catalog, purge the S3 path, set Spark write parameters, and write the data to S3).
 
     Next, add the following code to write data directly to Amazon Redshift.
 
@@ -418,12 +420,15 @@ In this step we modify the InsuranceLake Cleanse-to-Consume ETL job to write to 
 
 ### Query Amazon Redshift Consume layer
 
-Rerun the [PolicyData workflow](quickstart.md#try-out-the-etl-process) to publish data to Amazon Redshift Managed Storage and wait for the job to complete.
+1. Rerun the [`PolicyData` workflow](quickstart.md#try-out-the-etl-process) to publish data to Amazon Redshift Managed Storage and wait for the job to complete.
 
-Then use the following query in the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client) to check the data in the Consume layer:
+    {:. note}
+    If you have recently run the `PolicyData` workflow, you can [execute the pipeline without upload](loading_data.md#execute-pipeline-without-upload).
 
-```sql
-select * from syntheticgeneraldata_consume.public.policydata limit 100;
-```
+1. Use the following query in the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client) to check the data in the Consume layer:
 
-![Amazon Redshift Managed Storage Consume layer test](redshift_consume_layer_test.png)
+    ```sql
+    select * from syntheticgeneraldata_consume.public.policydata limit 100;
+    ```
+
+    ![Amazon Redshift Managed Storage Consume layer test](redshift_consume_layer_test.png)
