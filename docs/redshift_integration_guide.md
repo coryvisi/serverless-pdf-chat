@@ -121,7 +121,7 @@ AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshi
     ```
 
 
-## Data lake views in Amazon Redshift
+## Create data lake views in Amazon Redshift
 
 ### Data lake permissions
 
@@ -223,7 +223,7 @@ These instructions assume you have completed the [Quickstart guide](quickstart.m
     ```
 
 
-## Materialized views in Amazon Redshift
+## Create materialized views in Amazon Redshift
 
 Materialized views of data lake data in Amazon Redshift **require the same steps as [data lake views in Amazon Redshift](#data-lake-views-in-amazon-redshift)**, as well as the steps to create an external schema and grant permissions below.
 
@@ -264,7 +264,7 @@ Ensure you have successfully run a workflow to create each database before runni
 For more details and examples of creating materialized views using the external schemas created above, see the [Amazon Redshift SQL](using_sql.md#amazon-redshift-sql) section of the InsuranceLake Cleanse-to-Consume SQL Usage Documentation.
 
 
-### Query materialized views from Amazon Redshift
+### Create and query materialized views from Amazon Redshift
 
 {: .note}
 These instructions assume you have completed the [Quickstart guide](quickstart.md) and loaded the provided sample data into Data Catalog tables.
@@ -279,7 +279,7 @@ These instructions assume you have completed the [Quickstart guide](quickstart.m
 
     1. Run the following Amazon S3 copy command, substituting the S3 path for your InsuranceLake Collect bucket.
         ```bash
-        aws s3 cp trigger.csv s3://<COLLECT BUCKET>/SyntheticGeneralData/CombinedData/
+        aws s3 cp trigger.csv s3://<Collect S3 bucket>/SyntheticGeneralData/CombinedData/
         ```
 
 1. Use the [Step Functions console](https://console.aws.amazon.com/states/home) to monitor the progress of the workflow.

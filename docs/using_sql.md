@@ -138,7 +138,7 @@ The following are considerations and requirements for InsuranceLake's integratio
 
 * You can create views directly on the Amazon S3 data using the `awsdatacatalog` prefix to databases and tables. These views will run directly on the S3 data lake and can only be read-only.
     ```sql
-    SELECT * FROM awsdatacatalog.<data-catalog-db-name>.<data-catalog-table-name>;
+    SELECT * FROM awsdatacatalog.<Data Catalog database name>.<Data Catalog table name>;
     ```
 
 * [Materialized views in Amazon Redshift](https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-overview.html) can only be created on external schemas. InsuranceLake does not automatically create an external schema connected to the data lake.
