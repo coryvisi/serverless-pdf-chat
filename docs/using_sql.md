@@ -141,11 +141,15 @@ The following are considerations and requirements for InsuranceLake's integratio
     SELECT * FROM awsdatacatalog.<Data Catalog database name>.<Data Catalog table name>;
     ```
 
-* [Materialized views in Amazon Redshift](https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-overview.html) can only be created on external schemas. InsuranceLake does not automatically create an external schema connected to the data lake.
-
-* You can create external schemas outside of the InsuranceLake workflow to allow creation of materialized views in the workflow and improve performance of queries on the view. See [Amazon Redshift setup](redshift_integration_guide.md#create-an-external-schema) for instructions.
+* [Materialized views in Amazon Redshift](https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-overview.html) can only be created on external schemas. InsuranceLake does not automatically create an external schema connected to the data lake. You can create external schemas outside of the InsuranceLake workflow to allow creation of materialized views in the workflow and improve performance of queries on the view. See [Create materialized views in Amazon Redshift](redshift_integration_guide.md#create-materialized-views-in-amazon-redshift) for instructions.
 
 * Multiple statements can be separated by semi-colons `;`. The entire SQL file is sent to Amazon Redshift via API and is limited by [Amazon Redshift's maximum size for a single SQL statement](https://docs.aws.amazon.com/redshift/latest/dg/c_redshift-sql.html).
+
+* The Cleanse-to-Consume AWS Glue ETL job requires 2 extra parameters and additional IAM permissions for executing Amazon Redshift SQL. See [Create data lake views in Amazon Redshift](redshift_integration_guide.md#create-data-lake-views-in-amazon-redshift) for details. If your workflow uses an Amazon Redshift SQL configuration file, but you have not modified the AWS Glue ETL job details to specify the extra parameters, you will see the following error:
+
+    ```log
+    awsglue.utils.GlueArgumentError: argument --redshift_cluster_id or --redshift_workgroup_name is required when executing Amazon Redshift SQL
+    ```
 
 Example patterns using Amazon Redshift SQL:
 * [Simple Amazon Redshift Materialized View](#simple-amazon-redshift-materialized-view)
