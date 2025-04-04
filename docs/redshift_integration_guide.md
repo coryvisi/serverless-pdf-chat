@@ -33,6 +33,9 @@ The following sections cover the setup and testing of each integration option. S
 
 This section covers steps that are common to all 3 methods of integration with Amazon Redshift.
 
+{: .important}
+The instructions in the following sections assume you have completed the [Quickstart guide](quickstart.md) and loaded the provided sample data into Data Catalog tables.
+
 
 ### Provisioned cluster or serverless workgroup
 
@@ -47,7 +50,7 @@ Ensure you have followed the [CDK Instructions](cdk_instructions.md) for local d
 
 ### Amazon Redshift permissions for AWS Glue
 
-AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshift resources and execute SQL statements. Follow the below steps to add these permissions to the IAM role used by ETL jobs by modifying the InsuranceLake AWS Glue stack.
+AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshift resources and execute SQL statements. Follow the below steps to adjust the InsuranceLake AWS Glue stack so that the IAM role used by ETL jobs has these permissions.
 
 1. Add the following policy document to `get_glue_role` starting at line 502 in [glue_stack.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_stack.py#L502), the InsuranceLake AWS Glue stack.
 
@@ -109,10 +112,10 @@ AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshi
 1. Run the following SQL to grant the InsuranceLake AWS Glue ETL jobs role access to your Amazon Redshift database and the Data Catalog through Amazon Redshift Spectrum.
 
     {: .note }
-    In the below SQL, we explicitly create the Amazon Redshift user for the AWS Glue job IAM role so the `GRANT` statements succeed without having to run the ETL jobs once to create the user automatically (which would fail due to missing permissions).
+    In the below SQL, you will explicitly create the Amazon Redshift user for the AWS Glue job IAM role so the `GRANT` statements succeed. Normally, the first connection by the role to Amazon Redshift would create the user automatically; however, the first run will fail due to missing permissions.
 
     {: .important }
-    Modify the below SQL statements to use the correct AWS Glue role name and Amazon Redshift database name.
+    Adjust the following SQL statements to use the correct AWS Glue role name and Amazon Redshift database name.
 
     ```sql
     CREATE USER "IAMR:dev-insurancelake-us-east-2-glue-role" PASSWORD DISABLE;
@@ -180,7 +183,7 @@ Follow the steps below to add these parameters to the InsuranceLake data pipelin
 1. Add two additional arguments to `glue_cleanse_task` starting at line 164 in [step_functions_stack.py](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/step_functions_stack.py#L164), the InsuranceLake Step Functions stack.
 
     {: .important}
-    Modify the below example code to use the identified parameters from the prior step.
+    Adjust the following code section to use the parameters you identified in the previous step.
 
     This example is for an Amazon Redshift Serverless workgroup:
     ```python
@@ -204,9 +207,6 @@ Follow the steps below to add these parameters to the InsuranceLake data pipelin
     ```
 
 ### Query data lake views from Amazon Redshift
-
-{: .note}
-These instructions assume you have completed the [Quickstart guide](quickstart.md) and loaded the provided sample data into Data Catalog tables.
 
 1. Access the [Amazon Redshift query editor](https://console.aws.amazon.com/sqlworkbench/home#/client).
 
