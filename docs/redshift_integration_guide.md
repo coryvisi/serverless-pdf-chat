@@ -320,7 +320,7 @@ This guide uses a Data Catalog Connection to provide the connectivity to Amazon 
 
     InsuranceLake provisions your VPC using 3 Availability Zones, each with a public and private subnet. This divides the VPC subnet by 6, rounding down to the nearest power of 2. For example, if you specify a /24 VPC subnet in your InsuranceLake configuration, you will have 32 IP addresses in each private subnet.
 
-    AWS reserves 5 IP addresses in each subnet (1 network, 1 broadcast, 1 gateway, and 2 reserved). In addition, InsuranceLake VPCs are automatically deployed with 5 service endpoints, each of which occupies another IP address. In the above example, the 32 IP address subnet will have 22 available IP addresses.
+    AWS reserves 5 IP addresses in each subnet (1 network, 1 broadcast, 1 gateway, and 2 reserved). In addition, InsuranceLake VPCs are automatically deployed with 8 service endpoints, each of which occupies another IP address. In the above example, the 32 IP address subnet will have 19 available IP addresses.
 
     If you bring your own VPC, you may have different subnet divisions and service endpoints.
 
