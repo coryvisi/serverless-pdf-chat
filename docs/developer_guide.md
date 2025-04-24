@@ -47,7 +47,7 @@ Local development and testing of Apache Iceberg tables is possible using the AWS
 
 1. Spark with Scala runtime Jar
     * Required to run [unit tests](#unit-testing)
-    1. aws-bundle Jar
+1. aws-bundle Jar
     * Required for integration testing or local running and debugging with an AWS session
 
 Both JAR files can be downloaded from the [Apache Iceberg Releases page](https://iceberg.apache.org/releases/#downloads). The last versions known to work with AWS Glue 4.0 are [iceberg-spark-runtime-3.3_2.12-1.5.2.jar](https://search.maven.org/remotecontent?filepath=org/apache/iceberg/iceberg-spark-runtime-3.3_2.12/1.5.2/iceberg-spark-runtime-3.3_2.12-1.5.2.jar) and [iceberg-aws-bundle-1.5.2.jar](https://search.maven.org/remotecontent?filepath=org/apache/iceberg/iceberg-aws-bundle/1.5.2/iceberg-aws-bundle-1.5.2.jar).
@@ -136,7 +136,7 @@ The table below explains how this source code is structured.
 | [Entity Match AWS Glue Script](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_consume_entity_match.py) | AWS Glue PySpark job data processing logic for entity matching, which stores results in the Consume bucket
 | [ETL Job Auditor](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/etl_job_auditor/lambda_handler.py) | Lambda function to update DynamoDB in case of AWS Glue job success or failure
 | [ETL Trigger](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/state_machine_trigger/lambda_handler.py) | Lambda function to trigger step function and initiate DynamoDB
-| [Dependency Trigger](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/dependency_trigger/lambda_handler.py)   | Lambda function to trigger queued Step Functions executions based on SNS topic notifications
+| [ETL Dependency Trigger](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/dependency_trigger/lambda_handler.py)   | Lambda function to trigger queued Step Functions executions based on SNS topic notifications
 | [ETL Transformation Mapping and Specification](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/transformation-spec/) | Field mapping and transformation specification logic to be used for data processing from Collect to Cleanse
 | [ETL Transformation SQL](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/transformation-sql/) | Transformation SQL logic to be used for data processing from Cleanse to Consume
 | [ETL Data Quality Rules](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/dq-rules/) | AWS Glue Data Quality rules for quality checks from Cleanse to Consume
@@ -186,52 +186,54 @@ Due to their complexity, InsuranceLake AWS Glue jobs are not editable in the AWS
 
 To more quickly diagnose issues with features not available in the AWS Glue Docker container, or when working with large datasets that may be too slow to process locally, bypassing the Step Functions workflow to execute specific AWS Glue jobs can be helpful. The following are example executions for each of the three InsuranceLake ETL AWS Glue jobs with the minimum required parameters:
 
-    ```bash
-    aws glue start-job-run --job-name dev-insurancelake-cleanse-to-consume-job --arguments '
-    {
-        "--execution_id": "manual_execution_identifier",
-        "--source_bucketname": "dev-insurancelake-<Account ID>-us-east-2-glue-temp",
-        "--source_key": "MyDB/MyTable",
-        "--base_file_name": "input_file.csv",
-        "--database_name_prefix": "MyDB",
-        "--table_name": "MyTable",
-        "--p_year": "2024",
-        "--p_month": "01",
-        "--p_day": "01",
-        "--data_lineage_table": "dev-insurancelake-etl-data-lineage",
-        "--state_machine_name": "dev-insurancelake-etl-state-machine"
-    }'
-    ```
-    ```bash
-    aws glue start-job-run --job-name dev-insurancelake-cleanse-to-consume-job --arguments '
-    {
-        "--execution_id": "manual_execution_identifier",
-        "--source_bucketname": "dev-insurancelake-<Account ID>-us-east-2-glue-temp",
-        "--source_key": "MyDB/MyTable",
-        "--base_file_name": "input_file.csv",
-        "--database_name_prefix": "MyDB",
-        "--table_name": "MyTable",
-        "--p_year": "2024",
-        "--p_month": "01",
-        "--p_day": "01",
-        "--data_lineage_table": "dev-insurancelake-etl-data-lineage",
-        "--state_machine_name": "dev-insurancelake-etl-state-machine"
-    }'
-    ```
-    ```bash
-    aws glue start-job-run --job-name dev-insurancelake-consume-entity-match-job --arguments '
-    {
-        "--execution_id": "manual_execution_identifier",
-        "--source_key": "MyDB/MyTable",
-        "--database_name_prefix": "MyDB",
-        "--table_name": "MyTable",
-        "--data_lineage_table": "dev-insurancelake-etl-data-lineage",
-        "--state_machine_name": "dev-insurancelake-etl-state-machine",
-        "--p_year": "2024",
-        "--p_month": "01",
-        "--p_day": "01"
-    }'
-    ```
+```bash
+aws glue start-job-run --job-name dev-insurancelake-cleanse-to-consume-job --arguments '
+{
+    "--execution_id": "manual_execution_identifier",
+    "--source_bucketname": "dev-insurancelake-<Account ID>-us-east-2-glue-temp",
+    "--source_key": "MyDB/MyTable",
+    "--base_file_name": "input_file.csv",
+    "--database_name_prefix": "MyDB",
+    "--table_name": "MyTable",
+    "--p_year": "2024",
+    "--p_month": "01",
+    "--p_day": "01",
+    "--data_lineage_table": "dev-insurancelake-etl-data-lineage",
+    "--state_machine_name": "dev-insurancelake-etl-state-machine"
+}'
+```
+
+```bash
+aws glue start-job-run --job-name dev-insurancelake-cleanse-to-consume-job --arguments '
+{
+    "--execution_id": "manual_execution_identifier",
+    "--source_bucketname": "dev-insurancelake-<Account ID>-us-east-2-glue-temp",
+    "--source_key": "MyDB/MyTable",
+    "--base_file_name": "input_file.csv",
+    "--database_name_prefix": "MyDB",
+    "--table_name": "MyTable",
+    "--p_year": "2024",
+    "--p_month": "01",
+    "--p_day": "01",
+    "--data_lineage_table": "dev-insurancelake-etl-data-lineage",
+    "--state_machine_name": "dev-insurancelake-etl-state-machine"
+}'
+```
+
+```bash
+aws glue start-job-run --job-name dev-insurancelake-consume-entity-match-job --arguments '
+{
+    "--execution_id": "manual_execution_identifier",
+    "--source_key": "MyDB/MyTable",
+    "--database_name_prefix": "MyDB",
+    "--table_name": "MyTable",
+    "--data_lineage_table": "dev-insurancelake-etl-data-lineage",
+    "--state_machine_name": "dev-insurancelake-etl-state-machine",
+    "--p_year": "2024",
+    "--p_month": "01",
+    "--p_day": "01"
+}'
+```
 
 The following are additional code considerations:
 
