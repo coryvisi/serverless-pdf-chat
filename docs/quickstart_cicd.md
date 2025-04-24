@@ -10,7 +10,7 @@ If you've determined that InsuranceLake is a good starting point for your own se
 
 The steps in this section assume you want to develop and deploy locally. Follow the steps to create your CodePipeline stack and to use it to deploy the InsuranceLake resources.
 
-1. If this is your first time using the application in this environment, follow the [Python/CDK Basics](#pythoncdk-basics) steps to setup your local environment for AWS CDK development.
+1. If this is your first time using the application in this environment, follow the [CDK Instructions](cdk_instructions.md) steps to setup your local environment for AWS CDK development.
 
 1. You will likely need to make configuration changes to the code. Ensure that you have [forked the repository on Github](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo#use-someone-elses-project-as-a-starting-point-for-your-own-idea) or copied the source code to a separate repository.
 
@@ -42,7 +42,7 @@ The steps in this section assume you want to develop and deploy locally. Follow 
 
 1. Review the `local_mapping` structure in the `get_local_configuration()` function and make changes where necessary.
     - Specifically, the Regions and account IDs should make sense for your environments. These values in the repository (not locally) will be used by AWS CodePipeline and need to be maintained **in the repository**.
-    - The values for the Test and Production environments can be ommitted at this time, because we will only be deploying the Deployment and Development environments.
+    - The values for the Test and Production environments can be ommitted at this time, because we will only be deploying the Deployment and Development environments in the same account.
     - You must explicitly specify the account and Region for each environment so that the infrastructure virtual private clouds (VPCs) get three Availability Zones. [Review the reference documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ec2.Vpc.html#maxazs).
     - Refer to [Application Configuration](full_deployment_guide.md#application-configuration) from the Full Deployment Guide for more details on configuration parameters.
 
@@ -58,6 +58,11 @@ The steps in this section assume you want to develop and deploy locally. Follow 
     We recommend that you keep the logical ID prefix and resource name prefix consistent between repositories.
 
 1. Create a CodeConnections connection for your forked repository and configure the repository parameters by following the [AWS CodePipeline and Git Integration guide](full_deployment_guide.md#aws-codepipeline-and-git-integration).
+
+1. Bootstrap CDK in your AWS account.
+    ```bash
+    cdk bootstrap
+    ```
 
 1. Deploy the Infrastructure CodePipeline stack in the development environment (one stack).
     ```bash
@@ -75,7 +80,7 @@ The steps in this section assume you want to develop and deploy locally. Follow 
     ![Infrastructure CodePipeline progress](codepipeline_infrastructure_monitor_progress.png)
 
 1. Switch the working directory to the location of the ETL code.
-    ```bash/
+    ```bash
     cd ../aws-insurancelake-etl
     ```
 
