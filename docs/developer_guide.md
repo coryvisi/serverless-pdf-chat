@@ -2,7 +2,7 @@
 title: Developer Guide
 parent: Developer Documentation
 nav_order: 1
-last_modified_date: 2025-03-18
+last_modified_date: 2025-04-23
 ---
 # InsuranceLake Developer Guide
 {: .no_toc }
@@ -136,6 +136,7 @@ The table below explains how this source code is structured.
 | [Entity Match AWS Glue Script](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/etl_consume_entity_match.py) | AWS Glue PySpark job data processing logic for entity matching, which stores results in the Consume bucket
 | [ETL Job Auditor](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/etl_job_auditor/lambda_handler.py) | Lambda function to update DynamoDB in case of AWS Glue job success or failure
 | [ETL Trigger](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/state_machine_trigger/lambda_handler.py) | Lambda function to trigger step function and initiate DynamoDB
+| [Dependency Trigger](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/dependency_trigger/lambda_handler.py)   | Lambda function to trigger queued Step Functions executions based on SNS topic notifications
 | [ETL Transformation Mapping and Specification](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/transformation-spec/) | Field mapping and transformation specification logic to be used for data processing from Collect to Cleanse
 | [ETL Transformation SQL](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/transformation-sql/) | Transformation SQL logic to be used for data processing from Cleanse to Consume
 | [ETL Data Quality Rules](https://github.com/aws-solutions-library-samples/aws-insurancelake-etl/blob/main/lib/glue_scripts/dq-rules/) | AWS Glue Data Quality rules for quality checks from Cleanse to Consume
@@ -355,27 +356,88 @@ python -m pytest --cov
 To set up a local AWS Glue and Spark environment for testing, refer to the [Local AWS Glue and Apache Spark Development](#local-aws-glue-and-apache-spark-development) section.
 
 
-## AWS CodePipeline and GitHub Integration
+## Copy OpenSource Git Repositories
 
-Integration between CodePipeline and GitHub requires a personal access token. This access token is stored in AWS Secrets Manager. This is a one-time setup and is applicable for all target AWS environments and all repositories created under the organization in GitHub. Follow the below steps:
+Follow these instructions if you want to copy the InsuranceLake OpenSource repositories to your own repositories as a starting point. This is an alternative to forking the repository in Github.
 
-1. Create a personal access token in your GitHub. Refer to [Creating a personal access token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) for details.
+1. Clone the OpenSource repositories locally.
+   ```bash
+   git clone https://github.com/aws-solutions-library-samples/aws-insurancelake-infrastructure.git
+   git clone https://github.com/aws-solutions-library-samples/aws-insurancelake-etl.git
+   ```
 
-1. Run the below command:
-    ```bash
-    python3 ./lib/prerequisites/configure_account_secrets.py
+1. Change the working directory to the location of the infrastruture code.
+   ```bash
+   cd aws-insurancelake-infrastructure
+   ```
+
+1. Use the following git commands copy the infrastructure repository to your own repository using the `develop` branch.
+
+   {: .note}
+   We are using the `develop` branch because the Dev environment deployment is triggered by commits to the develop branch.
+
+   {: .important}
+   Edit the `origin` URL to correspond to your repository.
+
+   ```bash
+   git remote rename origin opensource
+   git remote add origin https://path/to/aws-insurancelake-infrastructure
+   git checkout -b develop
+   git push -u origin develop
+   ```
+
+1. Repeat these steps for the ETL repository.
+
+
+## CodeCommit Instructions
+
+{: .warning }
+AWS CodeCommit is no longer available to new AWS customers. Existing customers of AWS CodeCommit can continue to use the service as normal. 
+
+### CodeCommit as a mirror repository
+
+InsuranceLake comes with a CodeCommit mirror repository stack in both the infrastructure and ETL repositories. This mirror repository is meant to act as a source for CodePipeline so that you can configure external repositories to sync with CodeCommit and trigger CodePipeline builds.
+
+* [Instructions for configuring mirroring from Gitlab to CodeCommit](https://klika-tech.com/blog/2022/07/12/repository-mirroring-gitlab-to-codecommit/).
+
+To deploy the CodeCommit mirror repository stacks, follow these steps:
+
+1. Set the repository name parameters in `lib/configuration.py` for each codebase. An example of each follows.
+
+    ```python
+                # Name your CodeCommit mirror repo here (recommend matching your external repo)
+                # Leave empty if you use CodeConnections or your repository is in CodeCommit already
+                CODECOMMIT_MIRROR_REPOSITORY_NAME: 'aws-insurancelake-infrastructure',
+                # or
+                CODECOMMIT_MIRROR_REPOSITORY_NAME: 'aws-insurancelake-etl',
     ```
 
-1. Enter or paste in the GitHub personal access token when prompted.
-   {: .note }
-   The access token value will not appear on the screen.
+1. Deploy the CodeCommit mirror repository stacks for the infrastructure and ETL repositories.
 
-1. Confirm the information for the Secrets Manager Secret is correct, and type 'y'.
+    ```bash
+    cdk deploy Deploy-InsuranceLakeEtlMirrorRepository
+    cdk deploy Deploy-InsuranceLakeInfrastructureMirrorRepository
+    ```
 
-1. Expected output:
-    ```log
-    Pushing secret: /InsuranceLake/GitHubToken
-    A secret is added to AWS Secrets Manager with name **/InsuranceLake/GitHubToken**
+1. Follow the instructions in the [Quickstart with CI/CD](quickstart_cicd.md) or the [Full Deployment Guide](full_deployment_guide.md#deploying-cdk-stacks) for deploying the CodePipeline stacks.
+
+### CodeCommit as a main repository
+
+- This configuration requires you to setup the CodeCommit repository separately and before deploying InsuranceLake.
+
+- Set the repository name parameters in `lib/configuration.py` for each codebase. An example of each follows.
+
+    ```python
+            # Use only if your repository is already in CodecCommit, otherwise leave empty!
+            CODECOMMIT_REPOSITORY_NAME: 'aws-insurancelake-infrastructure',
+            # or
+            CODECOMMIT_REPOSITORY_NAME: 'aws-insurancelake-etl',
+    ```
+
+- Install the [Git CodeCommit Helper](https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-git-remote-codecommit.html):
+
+    ```bash
+    sudo pip install git-remote-codecommit
     ```
 
 
