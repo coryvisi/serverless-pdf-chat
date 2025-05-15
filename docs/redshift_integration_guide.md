@@ -126,11 +126,14 @@ AWS Glue ETL jobs must have the correct permissions to access your Amazon Redshi
 
 ## Create data lake views in Amazon Redshift
 
+![Data Lake Views Architecture](redshift_data_lake_views.png)
+
 ### Data lake permissions
 
 Your Amazon Redshift workgroup or cluster must have the correct permissions to access the data lake. InsuranceLake deployment creates a customer-managed IAM policy that you can use to provide this access.
 
 1. Identify the default IAM role used by the cluster or the workgroup's namespace in the [Amazon Redshift management console](https://console.aws.amazon.com/redshiftv2).
+    
     ![Example Amazon Redshift default IAM role](redshift-iam-role-example.png)
 
 1. Select the IAM role name to open it in AWS Console.
@@ -227,6 +230,7 @@ Follow the steps below to add these parameters to the InsuranceLake data pipelin
 
 Materialized views of data lake data in Amazon Redshift **require the same steps as [data lake views in Amazon Redshift](#data-lake-views-in-amazon-redshift)**, as well as the steps to create an external schema and grant permissions below.
 
+![Redshift with materialized views](redshift_materialized_views.png)
 
 ### Create an external schema
 
@@ -307,6 +311,7 @@ This section provides guidance for you to configure the Cleanse-to-Consume AWS G
 
 The following instructions use a Data Catalog Connection for the connectivity to Amazon Redshift. The Data Catalog Connection provisions the VPC automatically and retrieves Amazon Redshift credentials from AWS Secrets Manager.
 
+![Redshift as the consume layer](redshift_as_consume.png)
 
 ### Prerequisites
 
